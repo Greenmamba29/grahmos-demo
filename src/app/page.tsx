@@ -1,6 +1,7 @@
 "use client";
 /* eslint-disable */
 import { useState, useEffect, useRef } from "react";
+import GrahmOSDemo from "../components/GrahmOSDemo";
 
 // ═══════════════════════════════════════════════════════════════
 // ROST MACHINE NODE — DECENTRALIZED ADMIN CONTROL PANEL v2.0
@@ -88,10 +89,10 @@ const EDGE_ALERTS = [
 
 const EVENT_TYPES = ["EXECUTION", "SPINDLE_SPEED", "FEED_RATE", "POSITION", "AVAILABILITY", "CONTROLLER_MODE", "PROGRAM", "PART_COUNT", "TOOL_ID", "ALARM"];
 
-function generateEvent(seq) {
+function generateEvent(seq: number) {
   const machine = MACHINES[Math.floor(Math.random() * MACHINES.length)];
   const type = EVENT_TYPES[Math.floor(Math.random() * EVENT_TYPES.length)];
-  let value;
+  let value: any;
   if (type === "EXECUTION") value = ["ACTIVE", "READY", "STOPPED", "INTERRUPTED"][Math.floor(Math.random() * 4)];
   else if (type === "SPINDLE_SPEED") value = String(Math.floor(Math.random() * 15000));
   else if (type === "FEED_RATE") value = (Math.random() * 300).toFixed(1);
@@ -121,9 +122,9 @@ const C = {
 
 // ── UTILITY ───────────────────────────────────────────────────
 
-function fmtDur(s) { if (!s) return "—"; const d = Math.floor(s / 86400), h = Math.floor((s % 86400) / 3600), m = Math.floor((s % 3600) / 60); return d > 0 ? `${d}d ${h}h` : h > 0 ? `${h}h ${m}m` : `${m}m`; }
-function fmtAgo(iso) { if (!iso) return "never"; const d = (Date.now() - new Date(iso).getTime()) / 1000; return d < 60 ? `${Math.floor(d)}s ago` : d < 3600 ? `${Math.floor(d / 60)}m ago` : d < 86400 ? `${Math.floor(d / 3600)}h ago` : `${Math.floor(d / 86400)}d ago`; }
-function sColor(s) { if (["online", "active", "ACTIVE", "AVAILABLE"].includes(s)) return C.success; if (["degraded", "intermittent", "INTERRUPTED", "warning"].includes(s)) return C.warning; if (["offline", "unavailable", "UNAVAILABLE", "STOPPED"].includes(s)) return C.danger; if (s === "READY") return C.cyan; if (s === "onboarding") return C.purple; return C.textMut; }
+function fmtDur(s: number) { if (!s) return "—"; const d = Math.floor(s / 86400), h = Math.floor((s % 86400) / 3600), m = Math.floor((s % 3600) / 60); return d > 0 ? `${d}d ${h}h` : h > 0 ? `${h}h ${m}m` : `${m}m`; }
+function fmtAgo(iso: string | null) { if (!iso) return "never"; const d = (Date.now() - new Date(iso).getTime()) / 1000; return d < 60 ? `${Math.floor(d)}s ago` : d < 3600 ? `${Math.floor(d / 60)}m ago` : d < 86400 ? `${Math.floor(d / 3600)}h ago` : `${Math.floor(d / 86400)}d ago`; }
+function sColor(s: string) { if (["online", "active", "ACTIVE", "AVAILABLE"].includes(s)) return C.success; if (["degraded", "intermittent", "INTERRUPTED", "warning"].includes(s)) return C.warning; if (["offline", "unavailable", "UNAVAILABLE", "STOPPED"].includes(s)) return C.danger; if (s === "READY") return C.cyan; if (s === "onboarding") return C.purple; return C.textMut; }
 
 const globalCSS = `
   @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=DM+Sans:wght@400;500;600;700&display=swap');
@@ -141,7 +142,7 @@ const globalCSS = `
 
 // ── SHARED COMPONENTS ─────────────────────────────────────────
 
-function Dot({ status, size = 8, pulse = false }) {
+function Dot({ status, size = 8, pulse = false }: { status: string, size?: number, pulse?: boolean }) {
   const c = sColor(status);
   return <span style={{ position: "relative", display: "inline-flex", alignItems: "center", justifyContent: "center", width: size + 8, height: size + 8 }}>
     {pulse && <span style={{ position: "absolute", width: size + 6, height: size + 6, borderRadius: "50%", background: c, opacity: 0.25, animation: "pulse 2s infinite" }} />}
@@ -149,11 +150,11 @@ function Dot({ status, size = 8, pulse = false }) {
   </span>;
 }
 
-function Badge({ children, color = C.accent, bg }) {
+function Badge({ children, color = C.accent, bg }: { children: React.ReactNode, color?: string, bg?: string }) {
   return <span style={{ display: "inline-flex", alignItems: "center", padding: "2px 8px", borderRadius: 4, fontSize: "0.7rem", fontWeight: 600, letterSpacing: "0.03em", textTransform: "uppercase", color, background: bg || color + "18", border: `1px solid ${color}30`, fontFamily: "'JetBrains Mono',monospace" }}>{children}</span>;
 }
 
-function Metric({ label, value, sub, accent = C.accent, icon }) {
+function Metric({ label, value, sub, accent = C.accent, icon }: { label: string, value: string | number, sub?: string, accent?: string, icon?: string }) {
   return <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "14px 18px", display: "flex", flexDirection: "column", gap: 3 }}>
     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
       <span style={{ fontSize: "0.7rem", color: C.textSec, textTransform: "uppercase", letterSpacing: "0.06em", fontWeight: 600 }}>{label}</span>
@@ -164,7 +165,7 @@ function Metric({ label, value, sub, accent = C.accent, icon }) {
   </div>;
 }
 
-function Section({ title, sub, action, children }) {
+function Section({ title, sub, action, children }: { title: string, sub?: string, action?: React.ReactNode, children: React.ReactNode }) {
   return <div style={{ marginBottom: 24 }}>
     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 14 }}>
       <div>
@@ -177,7 +178,7 @@ function Section({ title, sub, action, children }) {
   </div>;
 }
 
-function OperationBadge({ wan }) {
+function OperationBadge({ wan }: { wan: string }) {
   const isOffline = wan === "offline";
   return <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "3px 10px", borderRadius: 6, background: isOffline ? C.offline + "15" : C.accent + "15", border: `1px solid ${isOffline ? C.offline : C.accent}30` }}>
     <span style={{ fontSize: "0.65rem" }}>{isOffline ? "📡" : "☁️"}</span>
@@ -187,7 +188,7 @@ function OperationBadge({ wan }) {
 
 // ── FLEET OVERVIEW ────────────────────────────────────────────
 
-function FleetOverview({ onSelectNode }) {
+function FleetOverview({ onSelectNode }: { onSelectNode: (id: string) => void }) {
   const onlineNodes = NODES.filter(n => n.status !== "offline").length;
   const totalMachines = MACHINES.length;
   const totalBacklog = NODES.reduce((a, n) => a + n.backlog, 0);
@@ -198,58 +199,127 @@ function FleetOverview({ onSelectNode }) {
   const wanOnline = NODES.filter(n => n.wan === "online").length;
 
   return <div style={{ animation: "fadeIn 0.3s ease" }}>
-    <Section title="Fleet Overview" sub="Decentralized edge fleet — every node operates independently">
-      {/* Internet status banner */}
-      <div style={{ background: C.surface, border: `1px solid ${C.offline}30`, borderRadius: 8, padding: "12px 18px", marginBottom: 16, display: "flex", alignItems: "center", gap: 12 }}>
-        <span style={{ fontSize: "1.3rem" }}>📡</span>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: "0.85rem", fontWeight: 600, color: C.offline }}>Internet Optional — All Nodes Operate Locally</div>
-          <div style={{ fontSize: "0.72rem", color: C.textSec, marginTop: 2 }}>{wanOnline}/{NODES.length} nodes with cloud sync · {NODES.length - wanOnline} operating offline with full local capability · {meshPeers} mesh connections active</div>
+    <Section title="Global Infrastructure" sub="Real-time multi-tenant GrahmOS node status" action={null}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
+        <Metric label="Active Nodes" value={`${onlineNodes}/${NODES.length}`} sub="Across 3 regions" />
+        <Metric label="MTConnect Agents" value={totalMachines} sub="Machines tracked" />
+        <Metric label="Cloud Backlog" value={totalBacklog.toLocaleString()} sub={totalBacklog > 0 ? "Pending sync" : "All nodes synced"} accent={totalBacklog > 0 ? C.warning : C.success} />
+        <Metric label="Mesh Topology" value={meshPeers} sub="Active peer links" accent={C.mesh} />
+      </div>
+    </Section>
+
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
+      <Section title="Edge Observability" sub="Telemetry aggregated from local instances" action={null}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <div style={{ padding: 16, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <div style={{ width: 40, height: 40, borderRadius: 20, background: C.cyan + "20", color: C.cyan, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>🧠</div>
+              <div>
+                <div style={{ fontWeight: 600 }}>Local AI Inference</div>
+                <div style={{ fontSize: "0.75rem", color: C.textMut }}>Running predictive models without cloud</div>
+              </div>
+            </div>
+            <div style={{ textAlign: "right" }}>
+              <div style={{ fontSize: "1.2rem", fontWeight: 700, color: aiAnomalies > 0 ? C.warning : C.success }}>{aiAnomalies}</div>
+              <div style={{ fontSize: "0.65rem", color: C.textMut }}>anomalies 24h</div>
+            </div>
+          </div>
+          <div style={{ padding: 16, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <div style={{ width: 40, height: 40, borderRadius: 20, background: C.danger + "20", color: C.danger, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>🚨</div>
+              <div>
+                <div style={{ fontWeight: 600 }}>Local Rule Engine</div>
+                <div style={{ fontSize: "0.75rem", color: C.textMut }}>Alarms generated and handled on-premise</div>
+              </div>
+            </div>
+            <div style={{ textAlign: "right" }}>
+              <div style={{ fontSize: "1.2rem", fontWeight: 700, color: alertsFired > 0 ? C.danger : C.textMut }}>{alertsFired}</div>
+              <div style={{ fontSize: "0.65rem", color: C.textMut }}>alerts 24h</div>
+            </div>
+          </div>
+          <div style={{ padding: 16, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <div style={{ width: 40, height: 40, borderRadius: 20, background: C.accent + "20", color: C.accent, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>💻</div>
+              <div>
+                <div style={{ fontWeight: 600 }}>Edge UI Sessions</div>
+                <div style={{ fontSize: "0.75rem", color: C.textMut }}>Operators accessing nodes directly</div>
+              </div>
+            </div>
+            <div style={{ textAlign: "right" }}>
+              <div style={{ fontSize: "1.2rem", fontWeight: 700, color: C.accent }}>{localUISessions}</div>
+              <div style={{ fontSize: "0.65rem", color: C.textMut }}>active now</div>
+            </div>
+          </div>
         </div>
-        <Badge color={C.offline}>Decentralized</Badge>
-      </div>
+      </Section>
 
-      {/* Metrics row */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12, marginBottom: 16 }}>
-        <Metric label="Nodes Online" value={`${onlineNodes}/${NODES.length}`} sub={`${wanOnline} cloud-syncing · ${onlineNodes - wanOnline} offline-only`} accent={C.success} icon="⬡" />
-        <Metric label="Mesh Connections" value={meshPeers} sub="Node-to-node LAN links active" accent={C.mesh} icon="🔗" />
-        <Metric label="Local UI Sessions" value={localUISessions} sub="Operators on local dashboards" accent={C.cyan} icon="📊" />
-        <Metric label="Edge AI Anomalies" value={aiAnomalies} sub={`${alertsFired} alerts fired locally (24h)`} accent={aiAnomalies > 2 ? C.warning : C.success} icon="🧠" />
-      </div>
+      <Section title="Mesh Topology Activity" sub="Decentralized peer-to-peer event bus" action={null}>
+        <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, overflow: "hidden" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.8rem" }}>
+            <thead>
+              <tr style={{ background: C.border + "40", borderBottom: `1px solid ${C.border}` }}>
+                <th style={{ padding: "10px 16px", textAlign: "left", color: C.textMut, fontWeight: 600 }}>Tenant</th>
+                <th style={{ padding: "10px 16px", textAlign: "left", color: C.textMut, fontWeight: 600 }}>Sync State</th>
+                <th style={{ padding: "10px 16px", textAlign: "right", color: C.textMut, fontWeight: 600 }}>CRDT Seq</th>
+              </tr>
+            </thead>
+            <tbody>
+              {TENANTS.map(t => {
+                const tenantNodes = NODES.filter(n => n.tenant_id === t.id);
+                if (tenantNodes.length === 0) return null;
+                const crdt = Math.max(...tenantNodes.map(n => n.mesh.crdt_version));
+                const synced = tenantNodes.every(n => n.mesh.crdt_version >= crdt - 5);
+                return <tr key={t.id} style={{ borderBottom: `1px solid ${C.border}40` }}>
+                  <td style={{ padding: "12px 16px" }}>
+                    <div style={{ fontWeight: 600 }}>{t.name}</div>
+                    <div style={{ fontSize: "0.7rem", color: C.textMut }}>{tenantNodes.length} nodes</div>
+                  </td>
+                  <td style={{ padding: "12px 16px" }}>
+                    {synced ? <Badge color={C.success} bg={C.success + "18"}>FULLY SYNCED</Badge> : <Badge color={C.warning} bg={C.warning + "18"}>GOSSIPING</Badge>}
+                  </td>
+                  <td style={{ padding: "12px 16px", textAlign: "right", fontFamily: "'JetBrains Mono',monospace", color: C.mesh }}>v{crdt}</td>
+                </tr>
+              })}
+            </tbody>
+          </table>
+        </div>
+      </Section>
+    </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12, marginBottom: 20 }}>
-        <Metric label="Total Machines" value={totalMachines} accent={C.accent} icon="⚙" />
-        <Metric label="Cloud Backlog" value={totalBacklog.toLocaleString()} sub="Events queued for cloud sync" accent={totalBacklog > 1000 ? C.warning : C.success} icon="↑" />
-        <Metric label="AI Models Deployed" value={AI_MODELS.length} sub="Running on-node inference" accent={C.purple} icon="🤖" />
-        <Metric label="Local Alert Rules" value={NODES.reduce((a, n) => a + n.local_alerts.active_rules, 0)} sub="Firing without cloud" accent={C.accent} icon="🚨" />
-      </div>
-
-      {/* Node cards */}
-      <h3 style={{ fontSize: "0.8rem", fontWeight: 600, color: C.textSec, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 10 }}>Edge Nodes</h3>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 12 }}>
+    <Section title="Node Inventory" sub="Physical deployment locations" action={null}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 16 }}>
         {NODES.map(node => (
-          <div key={node.id} onClick={() => onSelectNode(node.id)}
-            style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: 16, cursor: "pointer", transition: "border-color 0.15s" }}
-            onMouseEnter={e => e.currentTarget.style.borderColor = C.accent + "60"} onMouseLeave={e => e.currentTarget.style.borderColor = C.border}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <Dot status={node.status} size={8} pulse={node.status === "online"} />
-                <span style={{ fontWeight: 600, fontSize: "0.85rem" }}>{node.site}</span>
+          <div key={node.id} onClick={() => onSelectNode(node.id)} style={{ padding: 16, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, cursor: "pointer", transition: "all 0.2s" }} className="hover-card">
+            <style>{`.hover-card:hover { border-color: ${C.accent}; transform: translateY(-2px); }`}</style>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
+              <div>
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <Dot status={node.status} />
+                  <span style={{ fontWeight: 600 }}>{node.site}</span>
+                </div>
+                <div style={{ fontSize: "0.7rem", color: C.textMut, marginTop: 2, fontFamily: "'JetBrains Mono',monospace" }}>{node.ip}</div>
               </div>
-              <div style={{ display: "flex", gap: 4 }}>
-                <OperationBadge wan={node.wan} />
+              <OperationBadge wan={node.wan} />
+            </div>
+            <div style={{ display: "flex", gap: 16, fontSize: "0.75rem", marginBottom: 12 }}>
+              <div>
+                <div style={{ color: C.textMut }}>Machines</div>
+                <div style={{ fontWeight: 600 }}>{node.machines.length} MTConnect</div>
+              </div>
+              <div>
+                <div style={{ color: C.textMut }}>Uptime</div>
+                <div style={{ fontWeight: 600 }}>{fmtDur(node.uptime_s)}</div>
+              </div>
+              <div>
+                <div style={{ color: C.textMut }}>Backlog</div>
+                <div style={{ fontWeight: 600, color: node.backlog > 0 ? C.warning : C.text }}>{node.backlog} evts</div>
               </div>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 8, fontSize: "0.7rem", color: C.textSec }}>
-              <div><span style={{ color: C.textMut }}>LAN</span> <Dot status={node.lan} size={5} /></div>
-              <div><span style={{ color: C.textMut }}>Mesh</span> <span style={{ color: C.mesh, fontWeight: 600 }}>{node.mesh.peers.length}</span></div>
-              <div><span style={{ color: C.textMut }}>Local UI</span> <span style={{ color: node.local_ui.active ? C.cyan : C.textMut }}>{node.local_ui.active ? "●" : "○"}</span></div>
-              <div><span style={{ color: C.textMut }}>AI</span> <span style={{ color: node.edge_ai.models_loaded > 0 ? C.purple : C.textMut }}>{node.edge_ai.models_loaded} mdl</span></div>
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8, fontSize: "0.7rem", color: C.textSec, marginTop: 8, paddingTop: 8, borderTop: `1px solid ${C.borderSubtle}` }}>
-              <div><span style={{ color: C.textMut }}>Machines</span> <span style={{ fontWeight: 600 }}>{node.machines.length}</span></div>
-              <div><span style={{ color: C.textMut }}>Backlog</span> <span style={{ fontWeight: 600, color: node.backlog > 500 ? C.warning : C.text }}>{node.backlog.toLocaleString()}</span></div>
-              <div><span style={{ color: C.textMut }}>Uptime</span> <span style={{ fontWeight: 600 }}>{fmtDur(node.uptime_s)}</span></div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+              {node.machines.map(mId => {
+                const m = MACHINES.find(mx => mx.id === mId);
+                return m ? <span key={mId} style={{ fontSize: "0.65rem", padding: "2px 6px", background: C.border, borderRadius: 4, color: C.textSec }}>{m.model}</span> : null;
+              })}
             </div>
           </div>
         ))}
@@ -261,7 +331,7 @@ function FleetOverview({ onSelectNode }) {
 // ── MESH NETWORK VIEW ─────────────────────────────────────────
 
 function MeshNetworkView() {
-  const sites = {};
+  const sites: Record<string, any[]> = {};
   NODES.forEach(n => {
     const tenant = TENANTS.find(t => t.id === n.tenant_id);
     const key = tenant?.name || n.tenant_id;
@@ -291,7 +361,7 @@ function MeshNetworkView() {
         <div key={siteName} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: 18, marginBottom: 14 }}>
           <h3 style={{ fontSize: "0.85rem", fontWeight: 700, marginBottom: 12 }}>{siteName}</h3>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 16, alignItems: "center", justifyContent: "center", minHeight: 120 }}>
-            {siteNodes.map((node, i) => {
+            {(siteNodes as any[]).map((node: any, i: number) => {
               const peerCount = node.mesh.peers.length;
               const isOnline = node.status !== "offline";
               return <div key={node.id} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, position: "relative" }}>
@@ -313,11 +383,11 @@ function MeshNetworkView() {
           </div>
           {/* Connection lines description */}
           <div style={{ marginTop: 12, paddingTop: 10, borderTop: `1px solid ${C.borderSubtle}`, display: "flex", flexWrap: "wrap", gap: 8 }}>
-            {siteNodes.filter(n => n.mesh.peers.length > 0).map(n => n.mesh.peers.map(p => {
+            {(siteNodes as any[]).filter((n: any) => n.mesh.peers.length > 0).map((n: any) => n.mesh.peers.map((p: any) => {
               const peer = NODES.find(nn => nn.id === p);
-              if (!peer || !siteNodes.find(sn => sn.id === p)) return null;
+              if (!peer || !(siteNodes as any[]).find((sn: any) => sn.id === p)) return null;
               if (n.id > p) return null; // dedupe
-              return <div key={`${n.id}-${p}`} style={{ fontSize: "0.65rem", color: C.mesh, padding: "2px 8px", borderRadius: 4, background: C.mesh + "10", border: `1px solid ${C.mesh}20` }}>
+              return <div key={`${n.id}-${p}`} style={{ fontSize: "0.65rem", color: C.mesh, padding: "2px 8px", background: C.mesh + "10", border: `1px solid ${C.mesh}20`, borderRadius: 4 }}>
                 {n.site.split("–").pop()?.trim()} ↔ {peer.site.split("–").pop()?.trim()} <span style={{ color: C.textMut }}>synced</span>
               </div>;
             })).flat().filter(Boolean)}
@@ -331,6 +401,8 @@ function MeshNetworkView() {
 // ── EDGE INTELLIGENCE VIEW ────────────────────────────────────
 
 function EdgeIntelligenceView() {
+  const siteNodes = NODES.filter(n => n.edge_ai.models_loaded > 0);
+
   return <div style={{ animation: "fadeIn 0.3s ease" }}>
     <Section title="Edge Intelligence" sub="On-node AI inference, local alerts, and predictive maintenance — no cloud required">
       <div style={{ background: C.surface, border: `1px solid ${C.purple}30`, borderRadius: 8, padding: "12px 18px", marginBottom: 16, display: "flex", alignItems: "center", gap: 12 }}>
@@ -340,6 +412,43 @@ function EdgeIntelligenceView() {
           <div style={{ fontSize: "0.72rem", color: C.textSec, marginTop: 2 }}>ML models are deployed to edge nodes and run inference locally. Predictions, anomaly detection, and optimization happen at the machine — even without internet.</div>
         </div>
         <Badge color={C.purple}>Local AI</Badge>
+      </div>
+
+      {/* LEFT COL: Nodes */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        <Section title="Edge Nodes" sub={`${siteNodes.length} units in cluster`} action={null}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {siteNodes.map((n: any) => (
+              <div key={n.id} style={{ background: C.surfaceActive, border: `1px solid ${C.border}`, borderRadius: 8, padding: 16 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
+                  <div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <Dot status={n.status} />
+                      <span style={{ fontWeight: 600 }}>{n.id}</span>
+                    </div>
+                    <div style={{ fontSize: "0.7rem", color: C.textMut, marginTop: 2, fontFamily: "'JetBrains Mono',monospace" }}>{n.ip} • v{n.rost_version}</div>
+                  </div>
+                  <OperationBadge wan={n.wan} />
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, fontSize: "0.75rem", padding: "12px 0", borderTop: `1px solid ${C.border}50`, borderBottom: `1px solid ${C.border}50`, marginBottom: 12 }}>
+                  <div><span style={{ color: C.textMut }}>Local Cache:</span> <span style={{ fontFamily: "'JetBrains Mono',monospace" }}>{n.backlog > 0 ? `${n.backlog} evts` : "Empty"}</span></div>
+                  <div><span style={{ color: C.textMut }}>Mesh Sync:</span> <span style={{ color: C.mesh, fontFamily: "'JetBrains Mono',monospace" }}>v{n.mesh.crdt_version}</span></div>
+                  <div><span style={{ color: C.textMut }}>AI Rate:</span> <span style={{ fontFamily: "'JetBrains Mono',monospace" }}>{n.edge_ai.inference_rate} hz</span></div>
+                  <div><span style={{ color: C.textMut }}>Uptime:</span> <span>{fmtDur(n.uptime_s)}</span></div>
+                </div>
+                <div>
+                  <div style={{ fontSize: "0.7rem", color: C.textMut, marginBottom: 8, fontWeight: 600 }}>ATTACHED MACHINES ({n.machines.length})</div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                    {n.machines.map((mId: any) => {
+                      const m = MACHINES.find(mx => mx.id === mId);
+                      return m ? <Badge key={mId} color={sColor(m.execution)} bg={sColor(m.execution) + "15"} >{m.model}</Badge> : null;
+                    })}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Section>
       </div>
 
       {/* AI Models */}
@@ -405,7 +514,7 @@ function EdgeIntelligenceView() {
 // ── EVENT STREAM ──────────────────────────────────────────────
 
 function EventStream() {
-  const [events, setEvents] = useState([]);
+  const [events, setEvents] = useState<any[]>([]);
   const seqRef = useRef(0);
   useEffect(() => {
     const initial = Array.from({ length: 20 }, (_, i) => generateEvent(i));
@@ -543,14 +652,7 @@ function ArchitectureView() {
         { name: "Store-and-Forward", detail: "Batch signed events to cloud", icon: "⚡", tech: "HTTP batch + Ed25519" },
         { name: "WireGuard VPN", detail: "Encrypted tunnel (optional)", icon: "🔐", tech: "WireGuard 1.x" },
       ]
-    },
-    {
-      zone: "CLOUD AMPLIFIER — Global Visibility via Vercel", color: C.accent, items: [
-        { name: "Vercel Functions", detail: "Ingest API + signature verify", icon: "▲", tech: "Next.js serverless" },
-        { name: "Postgres + RLS", detail: "Multi-tenant event storage", icon: "🗄️", tech: "Row-level security" },
-        { name: "Global Dashboard", detail: "Cross-site fleet analytics", icon: "🌐", tech: "Next.js on Vercel" },
-      ]
-    },
+    }
   ];
 
   return <div style={{ animation: "fadeIn 0.3s ease" }}>
@@ -597,48 +699,7 @@ function ArchitectureView() {
           <div style={{ marginTop: 16, fontSize: "0.65rem", color: C.mesh, fontWeight: 600, padding: "4px 8px", background: C.mesh + "15", borderRadius: 4, display: "inline-block" }}>Local LAN · CRDT State · No Master</div>
         </div>
 
-        {/* Global Hub-and-Spoke visual */}
-        <div style={{ background: C.surface, border: `1px solid ${C.accent}40`, borderRadius: 8, padding: 20, position: "relative", overflow: "hidden", borderTop: `3px solid ${C.accent}` }}>
-          <div style={{ position: "absolute", right: -10, top: -10, opacity: 0.08 }}>
-            <svg width="150" height="150" viewBox="0 0 100 100">
-              <circle cx="50" cy="50" r="40" fill="none" stroke={C.accent} strokeWidth="2" strokeDasharray="4 4" />
-              <circle cx="50" cy="50" r="12" fill={C.accent} />
-              <line x1="50" y1="50" x2="20" y2="20" stroke={C.accent} strokeWidth="3" />
-              <line x1="50" y1="50" x2="80" y2="20" stroke={C.accent} strokeWidth="3" />
-              <line x1="50" y1="50" x2="20" y2="80" stroke={C.accent} strokeWidth="3" />
-              <line x1="50" y1="50" x2="80" y2="80" stroke={C.accent} strokeWidth="3" />
-              <line x1="50" y1="50" x2="90" y2="50" stroke={C.accent} strokeWidth="3" />
-              <line x1="50" y1="50" x2="10" y2="50" stroke={C.accent} strokeWidth="3" />
-            </svg>
-          </div>
-          <h3 style={{ fontSize: "0.9rem", fontWeight: 700, color: C.accent, display: "flex", alignItems: "center", gap: 8 }}>
-            <span>▲</span> Global Analytics (Hub-and-Spoke)
-          </h3>
-          <p style={{ fontSize: "0.75rem", color: C.textSec, marginTop: 8, marginBottom: 20, maxWidth: "90%", lineHeight: 1.5 }}>
-            Vercel handles the global aggregation. Every site connects independently to the Vercel hub. The cloud acts as a centralized amplifier for cross-site analytics, but <strong>Vercel is NOT required to keep the factory floor running.</strong>
-          </p>
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8, opacity: 0.95, marginTop: 10 }}>
-            {/* The Hub */}
-            <div style={{ display: "flex", alignItems: "center", gap: 6, zIndex: 2 }}>
-              <div style={{ width: 70, height: 30, borderRadius: "6px", background: `linear-gradient(135deg, ${C.surface}, ${C.surfaceHover})`, border: `1px solid ${C.accent}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.65rem", fontWeight: "bold", color: C.text, boxShadow: `0 0 15px ${C.accent}40` }}>
-                <span style={{ marginRight: 4 }}>▲</span> Vercel
-              </div>
-            </div>
-            {/* Spokes */}
-            <div style={{ display: "flex", gap: "25px", marginTop: "-4px" }}>
-              <div style={{ width: 2, height: 32, background: `linear-gradient(to bottom, ${C.accent}, ${C.border})`, transform: "rotate(25deg)", transformOrigin: "top" }} />
-              <div style={{ width: 2, height: 32, background: `linear-gradient(to bottom, ${C.accent}, ${C.border})` }} />
-              <div style={{ width: 2, height: 32, background: `linear-gradient(to bottom, ${C.accent}, ${C.border})`, transform: "rotate(-25deg)", transformOrigin: "top" }} />
-            </div>
-            {/* Edge sites */}
-            <div style={{ display: "flex", gap: 16, marginTop: "-8px", zIndex: 2 }}>
-              <div style={{ padding: "4px 10px", borderRadius: "6px", border: `1px solid ${C.border}`, fontSize: "0.6rem", color: C.textSec, background: C.surfaceHover }}>Site A</div>
-              <div style={{ padding: "4px 10px", borderRadius: "6px", border: `1px solid ${C.border}`, fontSize: "0.6rem", color: C.textSec, background: C.surfaceHover }}>Site B</div>
-              <div style={{ padding: "4px 10px", borderRadius: "6px", border: `1px solid ${C.border}`, fontSize: "0.6rem", color: C.textSec, background: C.surfaceHover }}>Site C</div>
-            </div>
-          </div>
-          <div style={{ marginTop: 16, fontSize: "0.65rem", color: C.accent, fontWeight: 600, padding: "4px 8px", background: C.accent + "15", borderRadius: 4, display: "inline-block" }}>WAN API · Postgres RLS · Centralized</div>
-        </div>
+        {/* Hub-and-Spoke visual removed until release */}
       </div>
 
       {layers.map((layer, li) => (
@@ -675,24 +736,31 @@ function ArchitectureView() {
 
 function TenantView() {
   return <div style={{ animation: "fadeIn 0.3s ease" }}>
-    <Section title="Tenants & Partners" sub="Multi-tenant isolation with row-level security">
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 12 }}>
-        {TENANTS.map(t => {
-          const tNodes = NODES.filter(n => n.tenant_id === t.id);
-          const offline = tNodes.filter(n => n.wan === "offline").length;
-          return <div key={t.id} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: 16 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-              <span style={{ fontWeight: 700, fontSize: "0.9rem" }}>{t.name}</span>
-              <Badge color={sColor(t.status)}>{t.status}</Badge>
-            </div>
-            <div style={{ fontSize: "0.72rem", color: C.textSec, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 4 }}>
-              <div>Region: {t.region}</div>
-              <div>Nodes: {tNodes.length}</div>
-              <div>Machines: {t.machines}</div>
-              <div>Offline nodes: <span style={{ color: offline > 0 ? C.warning : C.success }}>{offline}</span></div>
-            </div>
-          </div>;
-        })}
+    <Section title="Ecosystem Orchestration" sub="Manage logical boundaries across the decentralized edge" action={null}>
+      <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, overflow: "hidden" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem" }}>
+          <thead>
+            <tr style={{ background: C.border + "40", borderBottom: `1px solid ${C.border}` }}>
+              <th style={{ padding: "12px 20px", textAlign: "left", color: C.textMut, fontWeight: 600 }}>Tenant Name</th>
+              <th style={{ padding: "12px 20px", textAlign: "left", color: C.textMut, fontWeight: 600 }}>Region</th>
+              <th style={{ padding: "12px 20px", textAlign: "right", color: C.textMut, fontWeight: 600 }}>Deployed Nodes</th>
+              <th style={{ padding: "12px 20px", textAlign: "right", color: C.textMut, fontWeight: 600 }}>MTConnect Agents</th>
+              <th style={{ padding: "12px 20px", textAlign: "center", color: C.textMut, fontWeight: 600 }}>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {TENANTS.map(t => (
+              <tr key={t.id} style={{ borderBottom: `1px solid ${C.border}40`, transition: "background 0.2s" }} className="hover-row">
+                <style>{`.hover-row:hover { background: ${C.surfaceHover}; }`}</style>
+                <td style={{ padding: "16px 20px", fontWeight: 600 }}>{t.name}</td>
+                <td style={{ padding: "16px 20px", color: C.textSec }}>{t.region}</td>
+                <td style={{ padding: "16px 20px", textAlign: "right" }}>{t.nodes}</td>
+                <td style={{ padding: "16px 20px", textAlign: "right" }}>{t.machines}</td>
+                <td style={{ padding: "16px 20px", textAlign: "center" }}><Badge color={sColor(t.status)} bg={sColor(t.status) + "18"}>{t.status}</Badge></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </Section>
   </div>;
@@ -701,35 +769,51 @@ function TenantView() {
 // ── MAIN APP ──────────────────────────────────────────────────
 
 export default function RostDashboard() {
-  const [activeView, setActiveView] = useState("fleet");
-  const [selectedNode, setSelectedNode] = useState(null);
+  const [activeView, setActiveView] = useState("haas_demo");
+  const [selectedNode, setSelectedNode] = useState<string | null>(null);
   const [collapsed, setCollapsed] = useState(false);
   const [clock, setClock] = useState(new Date());
-  // simulate WAN toggle (removed unused vars)
+  const [stream, setStream] = useState<any[]>([]);
+  let seq = useRef(0).current; // Use useRef for mutable sequence counter
+  const clockOptions: Intl.DateTimeFormatOptions = { hour: 'numeric', minute: '2-digit', second: '2-digit' };
 
-  useEffect(() => { const t = setInterval(() => setClock(new Date()), 1000); return () => clearInterval(t); }, []);
+  useEffect(() => {
+    const streamInterval = setInterval(() => {
+      seq++; // Increment mutable ref value
+      setStream(prev => {
+        const next = [generateEvent(seq), ...prev].slice(0, 50);
+        return next as any[];
+      });
+    }, Math.random() * 800 + 400);
+
+    const clockInterval = setInterval(() => setClock(new Date()), 1000);
+
+    return () => { clearInterval(streamInterval); clearInterval(clockInterval); };
+  }, []);
 
   const wanOnline = NODES.filter(n => n.wan === "online").length;
   const totalNodes = NODES.length;
 
   const navItems = [
-    { key: "fleet", label: "Fleet Overview", icon: "⬡", section: "operations" },
-    { key: "mesh", label: "Mesh Network", icon: "🔗", section: "operations" },
-    { key: "edge_ai", label: "Edge Intelligence", icon: "🧠", section: "operations" },
-    { key: "events", label: "Event Stream", icon: "▸", section: "data" },
-    { key: "backlog", label: "Backlog Monitor", icon: "↑", section: "data" },
-    { key: "telemetry", label: "Machine Telemetry", icon: "⚙", section: "data" },
-    { key: "tenants", label: "Tenants", icon: "◈", section: "admin" },
-    { key: "architecture", label: "Architecture", icon: "△", section: "admin" },
+    { key: "haas_demo", label: "HaaS Demo", icon: "⚙️", section: "operations", color: C.haas },
+    { key: "fleet", label: "Fleet Overview", icon: "⬡", section: "operations", color: C.success },
+    { key: "mesh", label: "Mesh Network", icon: "🔗", section: "operations", color: C.mesh },
+    { key: "edge_ai", label: "Edge Intelligence", icon: "🧠", section: "operations", color: C.purple },
+    { key: "events", label: "Event Stream", icon: "▸", section: "data", color: C.cyan },
+    { key: "backlog", label: "Backlog Monitor", icon: "↑", section: "data", color: C.warning },
+    { key: "telemetry", label: "Machine Telemetry", icon: "⚙", section: "data", color: C.accent },
+    { key: "tenants", label: "Tenants", icon: "◈", section: "admin", color: C.textSec },
+    { key: "architecture", label: "Architecture", icon: "△", section: "admin", color: C.textMut },
   ];
 
   const sections = { operations: "Edge Operations", data: "Data & Telemetry", admin: "Administration" };
 
-  const handleSelectNode = (id) => { setSelectedNode(id); setActiveView("fleet"); };
+  const handleSelectNode = (id: string) => { setSelectedNode(id); setActiveView("fleet"); };
 
   const renderView = () => {
     if (activeView === "fleet") return <FleetOverview onSelectNode={handleSelectNode} />;
     if (activeView === "mesh") return <MeshNetworkView />;
+    if (activeView === "haas_demo") return <GrahmOSDemo />;
     if (activeView === "edge_ai") return <EdgeIntelligenceView />;
     if (activeView === "events") return <EventStream />;
     if (activeView === "backlog") return <BacklogMonitor />;
@@ -747,10 +831,21 @@ export default function RostDashboard() {
       {/* Sidebar */}
       <aside style={{ width: sideW, minHeight: "100vh", background: C.surface, borderRight: `1px solid ${C.border}`, display: "flex", flexDirection: "column", transition: "width 0.2s", overflow: "hidden", flexShrink: 0, position: "fixed", left: 0, top: 0, bottom: 0, zIndex: 10 }}>
         <div style={{ padding: collapsed ? "14px 10px" : "14px 16px", borderBottom: `1px solid ${C.border}`, display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{ width: 32, height: 32, borderRadius: 8, background: `linear-gradient(135deg, ${C.offline}, ${C.accent})`, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: "0.85rem", color: "#fff", flexShrink: 0 }}>R</div>
+          <div style={{ width: 32, height: 32, borderRadius: 8, background: `linear-gradient(135deg, #1a1a2e, #16213e)`, border: `1px solid rgba(59,130,246,0.3)`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <svg width="20" height="20" viewBox="0 0 22 22" fill="none">
+              <polygon points="20,11 15.5,18.8 6.5,18.8 2,11 6.5,3.2 15.5,3.2" stroke="#22c55e" strokeWidth="1.2" fill="none" opacity="0.7" />
+              <circle cx="11" cy="11" r="2.5" fill="#3b82f6" />
+              <line x1="11" y1="11" x2="20" y2="11" stroke="#22c55e" strokeWidth="0.8" opacity="0.6" />
+              <line x1="11" y1="11" x2="15.5" y2="18.8" stroke="#22c55e" strokeWidth="0.8" opacity="0.6" />
+              <line x1="11" y1="11" x2="6.5" y2="18.8" stroke="#22c55e" strokeWidth="0.8" opacity="0.6" />
+              <line x1="11" y1="11" x2="2" y2="11" stroke="#22c55e" strokeWidth="0.8" opacity="0.6" />
+              <line x1="11" y1="11" x2="6.5" y2="3.2" stroke="#22c55e" strokeWidth="0.8" opacity="0.6" />
+              <line x1="11" y1="11" x2="15.5" y2="3.2" stroke="#22c55e" strokeWidth="0.8" opacity="0.6" />
+            </svg>
+          </div>
           {!collapsed && <div>
-            <div style={{ fontWeight: 700, fontSize: "0.85rem", letterSpacing: "-0.02em" }}>ROST</div>
-            <div style={{ fontSize: "0.55rem", color: C.textMut, fontFamily: "'JetBrains Mono',monospace" }}>Decentralized Edge v2.0</div>
+            <div style={{ fontWeight: 700, fontSize: "1.1rem", letterSpacing: "-0.02em" }}>Grahm<span style={{ color: C.offline }}>OS</span></div>
+            <div style={{ fontSize: "0.55rem", color: C.textMut, fontFamily: "'JetBrains Mono',monospace", textTransform: "uppercase", letterSpacing: "0.05em" }}>Decentralized Edge v2.0</div>
           </div>}
         </div>
 
@@ -766,12 +861,28 @@ export default function RostDashboard() {
               {!collapsed && <div style={{ fontSize: "0.55rem", fontWeight: 600, color: C.textMut, textTransform: "uppercase", letterSpacing: "0.1em", padding: "10px 12px 4px" }}>{secLabel}</div>}
               {navItems.filter(n => n.section === secKey).map(item => {
                 const isActive = activeView === item.key;
-                return <button key={item.key} onClick={() => { setActiveView(item.key); setSelectedNode(null); }}
-                  style={{ display: "flex", alignItems: "center", gap: 10, width: "100%", padding: collapsed ? "9px 0" : "7px 12px", justifyContent: collapsed ? "center" : "flex-start", borderRadius: 6, border: "none", cursor: "pointer", fontFamily: "inherit", background: isActive ? C.accent + "15" : "transparent", color: isActive ? C.accent : C.textSec, fontSize: "0.75rem", fontWeight: isActive ? 600 : 500, transition: "all 0.12s", marginBottom: 1 }}
-                  onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = C.surfaceHover }} onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = "transparent" }}>
-                  <span style={{ fontSize: "0.85rem", opacity: isActive ? 1 : 0.6, width: 18, textAlign: "center" }}>{item.icon}</span>
-                  {!collapsed && <span>{item.label}</span>}
-                </button>;
+                return (
+                  <button
+                    key={item.key}
+                    onClick={() => { setActiveView(item.key); setSelectedNode(null); }}
+                    title={collapsed ? item.label : undefined}
+                    style={{
+                      width: "100%", display: "flex", alignItems: "center", gap: 12,
+                      padding: collapsed ? "8px 0" : "8px 12px",
+                      justifyContent: collapsed ? "center" : "flex-start",
+                      background: isActive ? C.surfaceActive : "transparent",
+                      border: "none", borderRadius: 6, color: isActive ? C.text : C.textSec,
+                      cursor: "pointer", fontSize: "0.8rem", fontWeight: isActive ? 600 : 400,
+                      textAlign: "left", marginBottom: 2, transition: "all 0.2s",
+                      fontFamily: "inherit"
+                    }}
+                    onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = C.surfaceHover }}
+                    onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = "transparent" }}
+                  >
+                    <span style={{ fontSize: "1rem", color: isActive ? item.color : C.textMut, width: collapsed ? "auto" : 20, textAlign: "center" }}>{item.icon}</span>
+                    {!collapsed && <span>{item.label}</span>}
+                  </button>
+                );
               })}
             </div>
           ))}

@@ -1,553 +1,890 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>GrahmOS — Fleet Summary One-Pager</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=DM+Sans:wght@400;500;600;700&display=swap');
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GrahmOS — Fleet Summary One-Pager</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=DM+Sans:wght@400;500;600;700&display=swap');
 
-  :root {
-    --bg: #0a0a0b;
-    --surface: #111113;
-    --border: #2a2a2e;
-    --text: #ececef;
-    --sec: #8b8b92;
-    --mut: #5c5c63;
-    --accent: #3b82f6;
-    --success: #22c55e;
-    --warning: #f59e0b;
-    --danger: #ef4444;
-    --cyan: #06b6d4;
-    --purple: #a855f7;
-    --mesh: #8b5cf6;
-    --offline: #22c55e;
-  }
-
-  * { margin:0; padding:0; box-sizing:border-box; }
-
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 13px;
-    -webkit-font-smoothing: antialiased;
-  }
-
-  /* ── TOOLTIP SYSTEM ── */
-  [data-tip] { position: relative; cursor: help; }
-  [data-tip]::after {
-    content: attr(data-tip);
-    position: absolute;
-    bottom: calc(100% + 8px);
-    left: 50%;
-    transform: translateX(-50%);
-    background: #1e1e28;
-    color: var(--text);
-    font-size: 11px;
-    font-family: 'DM Sans', sans-serif;
-    font-weight: 400;
-    line-height: 1.5;
-    padding: 8px 12px;
-    border-radius: 6px;
-    border: 1px solid #3b3b4a;
-    width: 220px;
-    white-space: normal;
-    text-align: left;
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.15s;
-    z-index: 100;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-  }
-  [data-tip]:hover::after { opacity: 1; }
-  [data-tip]::before {
-    content: '';
-    position: absolute;
-    bottom: calc(100% + 3px);
-    left: 50%;
-    transform: translateX(-50%);
-    border: 5px solid transparent;
-    border-top-color: #3b3b4a;
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.15s;
-    z-index: 101;
-  }
-  [data-tip]:hover::before { opacity: 1; }
-
-  /* ── PAGE LAYOUT ── */
-  .page {
-    width: 1100px;
-    margin: 20px auto;
-    padding: 36px 40px 40px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    position: relative;
-  }
-
-  /* ── HEADER ── */
-  .header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 28px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid var(--border);
-  }
-  .logo-area { display: flex; align-items: center; gap: 14px; }
-  .logo-icon {
-    width: 44px; height: 44px;
-    border-radius: 10px;
-    background: linear-gradient(135deg, #1a1a2e, #16213e);
-    border: 1px solid rgba(59,130,246,0.3);
-    display: flex; align-items: center; justify-content: center;
-  }
-  .logo-text h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.03em; }
-  .logo-text p { font-size: 11px; color: var(--sec); font-family: 'JetBrains Mono', monospace; margin-top: 2px; }
-  .header-meta { text-align: right; font-size: 11px; color: var(--mut); line-height: 1.8; }
-  .header-meta strong { color: var(--offline); }
-
-  /* ── SECTION LABELS ── */
-  .sec-label {
-    font-size: 10px; font-weight: 700; text-transform: uppercase;
-    letter-spacing: 0.1em; color: var(--mut); margin-bottom: 10px;
-    display: flex; align-items: center; gap: 6px;
-  }
-  .sec-label::after { content:''; flex:1; height:1px; background: var(--border); }
-
-  /* ── BADGE ── */
-  .badge {
-    display: inline-flex; align-items: center;
-    padding: 2px 8px; border-radius: 4px;
-    font-size: 10px; font-weight: 700;
-    text-transform: uppercase; letter-spacing: 0.04em;
-    font-family: 'JetBrains Mono', monospace;
-  }
-
-  /* ── METRICS ROW ── */
-  .metrics-grid { display: grid; grid-template-columns: repeat(6,1fr); gap: 10px; margin-bottom: 20px; }
-  .metric-card {
-    background: #0a0a0b;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 12px 14px;
-    transition: border-color 0.15s;
-  }
-  .metric-card:hover { border-color: rgba(59,130,246,0.4); }
-  .metric-label { font-size: 10px; color: var(--sec); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; margin-bottom: 4px; }
-  .metric-value { font-size: 22px; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
-  .metric-sub { font-size: 10px; color: var(--mut); margin-top: 3px; line-height: 1.4; }
-
-  /* ── MAIN GRID ── */
-  .main-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 16px; margin-bottom: 16px; }
-  .full-width { grid-column: 1 / -1; }
-
-  /* ── NODE TABLE ── */
-  .node-table { width: 100%; border-collapse: collapse; }
-  .node-table th {
-    font-size: 10px; font-weight: 600; color: var(--mut);
-    text-transform: uppercase; letter-spacing: 0.06em;
-    padding: 6px 10px; border-bottom: 1px solid var(--border);
-    text-align: left; background: #0a0a0b;
-  }
-  .node-table td {
-    padding: 8px 10px; border-bottom: 1px solid #1e1e22;
-    font-size: 12px; vertical-align: middle;
-  }
-  .node-table tr:last-child td { border-bottom: none; }
-  .node-table tr:hover td { background: rgba(255,255,255,0.02); }
-
-  .dot {
-    display: inline-block; width: 7px; height: 7px;
-    border-radius: 50%; margin-right: 5px; vertical-align: middle;
-  }
-
-  /* ── CARDS ── */
-  .card {
-    background: #0a0a0b;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 14px 16px;
-  }
-  .card-title { font-size: 11px; font-weight: 700; margin-bottom: 10px; color: var(--sec); text-transform: uppercase; letter-spacing: 0.06em; }
-
-  /* ── AI MODELS ── */
-  .model-row {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 6px 0; border-bottom: 1px solid #1e1e22; font-size: 11px;
-  }
-  .model-row:last-child { border-bottom: none; }
-
-  /* ── BACKLOG BARS ── */
-  .backlog-row { margin-bottom: 8px; }
-  .backlog-bar-track { height: 5px; background: #1e1e22; border-radius: 3px; margin-top: 4px; overflow: hidden; }
-  .backlog-bar-fill { height: 100%; border-radius: 3px; transition: width 0.5s; }
-
-  /* ── ARCH LAYER ── */
-  .arch-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
-  .arch-zone {
-    border-radius: 6px; padding: 10px 12px;
-    border-left: 3px solid;
-  }
-  .arch-zone-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
-  .arch-item { font-size: 11px; color: var(--sec); padding: 3px 0; display: flex; align-items: center; gap: 6px; }
-  .arch-item span { font-size: 13px; }
-
-  /* ── ALERT STRIP ── */
-  .alert-strip { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
-  .alert-pill {
-    display: flex; align-items: center; gap: 6px;
-    padding: 5px 10px; border-radius: 20px;
-    font-size: 11px; border: 1px solid;
-  }
-
-  /* ── FOOTER ── */
-  .footer {
-    margin-top: 20px; padding-top: 14px;
-    border-top: 1px solid var(--border);
-    display: flex; justify-content: space-between; align-items: center;
-    font-size: 10px; color: var(--mut);
-  }
-  .footer-badges { display: flex; gap: 6px; }
-
-  /* ── PRINT BUTTON ── */
-  .print-bar {
-    width: 1100px; margin: 0 auto 12px;
-    display: flex; justify-content: flex-end; gap: 8px;
-  }
-  .btn {
-    padding: 7px 16px; border-radius: 6px; border: 1px solid var(--border);
-    background: var(--surface); color: var(--text); font-family: 'DM Sans', sans-serif;
-    font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s;
-  }
-  .btn:hover { background: #1e1e22; border-color: var(--accent); }
-  .btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
-  .btn-primary:hover { background: #2563eb; }
-
-  /* ── PRINT STYLES ── */
-  @media print {
-    body { background: #fff; color: #000; font-size: 11px; }
-    .print-bar { display: none; }
-    .page {
-      width: 100%; margin: 0; padding: 20px 24px;
-      border: none; border-radius: 0;
-      background: #fff; color: #000;
-    }
     :root {
-      --bg: #fff; --surface: #fff; --border: #ddd;
-      --text: #111; --sec: #555; --mut: #888;
-      --accent: #2563eb; --success: #16a34a; --warning: #d97706;
-      --danger: #dc2626; --cyan: #0891b2; --purple: #9333ea;
-      --mesh: #7c3aed; --offline: #16a34a;
+      --bg: #0a0a0b;
+      --surface: #111113;
+      --border: #2a2a2e;
+      --text: #ececef;
+      --sec: #8b8b92;
+      --mut: #5c5c63;
+      --accent: #3b82f6;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --cyan: #06b6d4;
+      --purple: #a855f7;
+      --mesh: #8b5cf6;
+      --offline: #22c55e;
     }
-    .card, .metric-card { border: 1px solid #ddd; background: #f9f9f9; }
-    .arch-zone { background: #f5f5f5 !important; }
-    [data-tip]::after, [data-tip]::before { display: none; }
-    .node-table th { background: #f0f0f0; }
-  }
-</style>
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── TOOLTIP SYSTEM ── */
+    [data-tip] {
+      position: relative;
+      cursor: help;
+    }
+
+    [data-tip]::after {
+      content: attr(data-tip);
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1e1e28;
+      color: var(--text);
+      font-size: 11px;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 400;
+      line-height: 1.5;
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid #3b3b4a;
+      width: 220px;
+      white-space: normal;
+      text-align: left;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.15s;
+      z-index: 100;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    }
+
+    [data-tip]:hover::after {
+      opacity: 1;
+    }
+
+    [data-tip]::before {
+      content: '';
+      position: absolute;
+      bottom: calc(100% + 3px);
+      left: 50%;
+      transform: translateX(-50%);
+      border: 5px solid transparent;
+      border-top-color: #3b3b4a;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.15s;
+      z-index: 101;
+    }
+
+    [data-tip]:hover::before {
+      opacity: 1;
+    }
+
+    /* ── PAGE LAYOUT ── */
+    .page {
+      width: 1100px;
+      margin: 20px auto;
+      padding: 36px 40px 40px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      position: relative;
+    }
+
+    /* ── HEADER ── */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 28px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo-area {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .logo-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #1a1a2e, #16213e);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .logo-text h1 {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+    }
+
+    .logo-text p {
+      font-size: 11px;
+      color: var(--sec);
+      font-family: 'JetBrains Mono', monospace;
+      margin-top: 2px;
+    }
+
+    .header-meta {
+      text-align: right;
+      font-size: 11px;
+      color: var(--mut);
+      line-height: 1.8;
+    }
+
+    .header-meta strong {
+      color: var(--offline);
+    }
+
+    /* ── SECTION LABELS ── */
+    .sec-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--mut);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .sec-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ── BADGE ── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* ── METRICS ROW ── */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .metric-card {
+      background: #0a0a0b;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      transition: border-color 0.15s;
+    }
+
+    .metric-card:hover {
+      border-color: rgba(59, 130, 246, 0.4);
+    }
+
+    .metric-label {
+      font-size: 10px;
+      color: var(--sec);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .metric-value {
+      font-size: 22px;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .metric-sub {
+      font-size: 10px;
+      color: var(--mut);
+      margin-top: 3px;
+      line-height: 1.4;
+    }
+
+    /* ── MAIN GRID ── */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .full-width {
+      grid-column: 1 / -1;
+    }
+
+    /* ── NODE TABLE ── */
+    .node-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .node-table th {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--mut);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 6px 10px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      background: #0a0a0b;
+    }
+
+    .node-table td {
+      padding: 8px 10px;
+      border-bottom: 1px solid #1e1e22;
+      font-size: 12px;
+      vertical-align: middle;
+    }
+
+    .node-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .node-table tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .dot {
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      margin-right: 5px;
+      vertical-align: middle;
+    }
+
+    /* ── CARDS ── */
+    .card {
+      background: #0a0a0b;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 16px;
+    }
+
+    .card-title {
+      font-size: 11px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      color: var(--sec);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    /* ── AI MODELS ── */
+    .model-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      border-bottom: 1px solid #1e1e22;
+      font-size: 11px;
+    }
+
+    .model-row:last-child {
+      border-bottom: none;
+    }
+
+    /* ── BACKLOG BARS ── */
+    .backlog-row {
+      margin-bottom: 8px;
+    }
+
+    .backlog-bar-track {
+      height: 5px;
+      background: #1e1e22;
+      border-radius: 3px;
+      margin-top: 4px;
+      overflow: hidden;
+    }
+
+    .backlog-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.5s;
+    }
+
+    /* ── ARCH LAYER ── */
+    .arch-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .arch-zone {
+      border-radius: 6px;
+      padding: 10px 12px;
+      border-left: 3px solid;
+    }
+
+    .arch-zone-title {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+    }
+
+    .arch-item {
+      font-size: 11px;
+      color: var(--sec);
+      padding: 3px 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .arch-item span {
+      font-size: 13px;
+    }
+
+    /* ── ALERT STRIP ── */
+    .alert-strip {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .alert-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      border: 1px solid;
+    }
+
+    /* ── FOOTER ── */
+    .footer {
+      margin-top: 20px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 10px;
+      color: var(--mut);
+    }
+
+    .footer-badges {
+      display: flex;
+      gap: 6px;
+    }
+
+    /* ── PRINT BUTTON ── */
+    .print-bar {
+      width: 1100px;
+      margin: 0 auto 12px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .btn {
+      padding: 7px 16px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .btn:hover {
+      background: #1e1e22;
+      border-color: var(--accent);
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: #2563eb;
+    }
+
+    /* ── PRINT STYLES ── */
+    @media print {
+      body {
+        background: #fff;
+        color: #000;
+        font-size: 11px;
+      }
+
+      .print-bar {
+        display: none;
+      }
+
+      .page {
+        width: 100%;
+        margin: 0;
+        padding: 20px 24px;
+        border: none;
+        border-radius: 0;
+        background: #fff;
+        color: #000;
+      }
+
+      :root {
+        --bg: #fff;
+        --surface: #fff;
+        --border: #ddd;
+        --text: #111;
+        --sec: #555;
+        --mut: #888;
+        --accent: #2563eb;
+        --success: #16a34a;
+        --warning: #d97706;
+        --danger: #dc2626;
+        --cyan: #0891b2;
+        --purple: #9333ea;
+        --mesh: #7c3aed;
+        --offline: #16a34a;
+      }
+
+      .card,
+      .metric-card {
+        border: 1px solid #ddd;
+        background: #f9f9f9;
+      }
+
+      .arch-zone {
+        background: #f5f5f5 !important;
+      }
+
+      [data-tip]::after,
+      [data-tip]::before {
+        display: none;
+      }
+
+      .node-table th {
+        background: #f0f0f0;
+      }
+    }
+  </style>
 </head>
+
 <body>
 
-<!-- Print/Save bar -->
-<div class="print-bar">
-  <button class="btn" onclick="window.print()">🖨️ Save as PDF</button>
-  <button class="btn btn-primary" onclick="copyLink()">🔗 Copy Share Link</button>
-</div>
-
-<div class="page">
-
-  <!-- ── HEADER ── -->
-  <div class="header">
-    <div class="logo-area">
-      <div class="logo-icon">
-        <svg width="28" height="28" viewBox="0 0 22 22" fill="none">
-          <polygon points="11,2 19.5,6.5 19.5,15.5 11,20 2.5,15.5 2.5,6.5" stroke="#22c55e" stroke-width="1.2" fill="none" opacity="0.7"/>
-          <circle cx="11" cy="11" r="2.5" fill="#3b82f6"/>
-          <line x1="11" y1="2" x2="11" y2="8.5" stroke="#22c55e" stroke-width="0.8" opacity="0.6"/>
-          <line x1="19.5" y1="6.5" x2="13.2" y2="9.8" stroke="#22c55e" stroke-width="0.8" opacity="0.6"/>
-          <line x1="19.5" y1="15.5" x2="13.2" y2="12.2" stroke="#22c55e" stroke-width="0.8" opacity="0.6"/>
-          <line x1="11" y1="20" x2="11" y2="13.5" stroke="#22c55e" stroke-width="0.8" opacity="0.6"/>
-          <line x1="2.5" y1="15.5" x2="8.8" y2="12.2" stroke="#22c55e" stroke-width="0.8" opacity="0.6"/>
-          <line x1="2.5" y1="6.5" x2="8.8" y2="9.8" stroke="#22c55e" stroke-width="0.8" opacity="0.6"/>
-        </svg>
-      </div>
-      <div class="logo-text">
-        <h1>GrahmOS</h1>
-        <p>Resilient Machine Node — Fleet Summary Report</p>
-      </div>
-    </div>
-    <div class="header-meta">
-      <strong>📡 Internet Optional — All Nodes Operate Locally</strong><br>
-      Generated: Feb 28, 2026 · 16:10 UTC<br>
-      Fleet: 3 Tenants · 6 Nodes · 6 Machines<br>
-      Offline nodes retain 100% local capability
-    </div>
+  <!-- Print/Save bar -->
+  <div class="print-bar">
+    <button class="btn" onclick="window.print()">🖨️ Save as PDF</button>
+    <button class="btn btn-primary" onclick="copyLink()">🔗 Copy Share Link</button>
   </div>
 
-  <!-- ── KPI METRICS ── -->
-  <div class="sec-label" data-tip="Key performance indicators aggregated across the entire GrahmOS fleet in real time.">Fleet KPIs <span style="font-size:10px;cursor:help">ⓘ</span></div>
-  <div class="metrics-grid">
-    <div class="metric-card" data-tip="Nodes currently reachable on LAN. Degraded = online but WAN offline. Offline = LAN unreachable.">
-      <div class="metric-label">Nodes Online</div>
-      <div class="metric-value" style="color:#22c55e">5/6</div>
-      <div class="metric-sub">4 fully syncing · 1 offline-mode</div>
-    </div>
-    <div class="metric-card" data-tip="WAN = internet connectivity for cloud sync. Nodes with WAN offline still run locally and mesh-sync with peers.">
-      <div class="metric-label">Cloud Syncing</div>
-      <div class="metric-value" style="color:#3b82f6">3/6</div>
-      <div class="metric-sub">3 nodes WAN offline, operating locally</div>
-    </div>
-    <div class="metric-card" data-tip="Total machines being monitored via MTConnect agents on this fleet right now.">
-      <div class="metric-label">Machines</div>
-      <div class="metric-value" style="color:#06b6d4">6</div>
-      <div class="metric-sub">4 active · 1 interrupted · 1 unavailable</div>
-    </div>
-    <div class="metric-card" data-tip="Events stored locally in SQLite WAL that have not yet been delivered to the cloud. This is NOT data loss — all events are safe on-node.">
-      <div class="metric-label">Cloud Backlog</div>
-      <div class="metric-value" style="color:#f59e0b">6,048</div>
-      <div class="metric-sub">Events queued for cloud sync (safe locally)</div>
-    </div>
-    <div class="metric-card" data-tip="Active node-to-node mesh links using mDNS discovery + Automerge CRDT. Nodes share fleet state over LAN without any server.">
-      <div class="metric-label">Mesh Links</div>
-      <div class="metric-value" style="color:#8b5cf6">8</div>
-      <div class="metric-sub">P2P LAN links · CRDT v4812</div>
-    </div>
-    <div class="metric-card" data-tip="AI alerts fired at the edge in the last 24 hours. These run entirely on-node — no cloud call required to detect anomalies.">
-      <div class="metric-label">AI Alerts (24h)</div>
-      <div class="metric-value" style="color:#ef4444">12</div>
-      <div class="metric-sub">1 critical · 7 warning · 4 info</div>
-    </div>
-  </div>
+  <div class="page">
 
-  <!-- ── MAIN CONTENT ── -->
-  <div class="main-grid">
-
-    <!-- LEFT: Node Status Table -->
-    <div>
-      <div class="sec-label" data-tip="Each GrahmOS edge node is an industrial gateway (Raspberry Pi 5 / x86) co-located with CNC machines. It collects MTConnect data, stores it locally, serves a local dashboard, runs AI inference, and meshes with peer nodes.">Edge Node Status <span style="font-size:10px;cursor:help">ⓘ</span></div>
-      <div class="card" style="padding:0;overflow:hidden">
-        <table class="node-table">
-          <thead>
-            <tr>
-              <th data-tip="Site name and node identifier">Site</th>
-              <th data-tip="LAN = local network reachability. WAN = internet/cloud sync.">LAN / WAN</th>
-              <th data-tip="Number of Haas CNC machines polled by this node's MTConnect collector">Machines</th>
-              <th data-tip="Cloud sync backlog — events stored locally waiting for internet">Backlog</th>
-              <th data-tip="Number of peer nodes this node is meshed with over LAN">Mesh</th>
-              <th data-tip="Local operator dashboard sessions active right now on this node's port 3000">Local UI</th>
-              <th data-tip="How long this node has been running without a reboot">Uptime</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td><span class="dot" style="background:#22c55e"></span>Allendale Bay 1</td>
-              <td><span class="badge" style="background:#22c55e18;color:#22c55e;border:1px solid #22c55e30">LAN ✓</span> <span class="badge" style="background:#3b82f618;color:#3b82f6;border:1px solid #3b82f630">WAN ✓</span></td>
-              <td>3</td>
-              <td style="font-family:'JetBrains Mono',monospace;color:#22c55e">0</td>
-              <td style="color:#8b5cf6;font-weight:600">2 peers</td>
-              <td style="color:#06b6d4">2 active</td>
-              <td style="color:#8b8b92">10d</td>
-            </tr>
-            <tr>
-              <td><span class="dot" style="background:#22c55e"></span>Allendale Bay 2</td>
-              <td><span class="badge" style="background:#22c55e18;color:#22c55e;border:1px solid #22c55e30">LAN ✓</span> <span class="badge" style="background:#3b82f618;color:#3b82f6;border:1px solid #3b82f630">WAN ✓</span></td>
-              <td>2</td>
-              <td style="font-family:'JetBrains Mono',monospace;color:#22c55e">12</td>
-              <td style="color:#8b5cf6;font-weight:600">2 peers</td>
-              <td style="color:#06b6d4">1 active</td>
-              <td style="color:#8b8b92">5d</td>
-            </tr>
-            <tr style="background:rgba(245,158,11,0.04)">
-              <td><span class="dot" style="background:#f59e0b"></span>Allendale South A <span class="badge" style="background:#f59e0b18;color:#f59e0b;border:1px solid #f59e0b30;margin-left:4px">Degraded</span></td>
-              <td><span class="badge" style="background:#22c55e18;color:#22c55e;border:1px solid #22c55e30">LAN ✓</span> <span class="badge" style="background:#ef444418;color:#ef4444;border:1px solid #ef444430">WAN ✗</span></td>
-              <td>4</td>
-              <td style="font-family:'JetBrains Mono',monospace;color:#f59e0b">1,823</td>
-              <td style="color:#8b5cf6;font-weight:600">2 peers</td>
-              <td style="color:#06b6d4">3 active</td>
-              <td style="color:#8b8b92">1d</td>
-            </tr>
-            <tr style="background:rgba(239,68,68,0.04)">
-              <td><span class="dot" style="background:#ef4444"></span>Allendale South B <span class="badge" style="background:#ef444418;color:#ef4444;border:1px solid #ef444430;margin-left:4px">Offline</span></td>
-              <td><span class="badge" style="background:#ef444418;color:#ef4444;border:1px solid #ef444430">LAN ✗</span> <span class="badge" style="background:#ef444418;color:#ef4444;border:1px solid #ef444430">WAN ✗</span></td>
-              <td>2</td>
-              <td style="font-family:'JetBrains Mono',monospace;color:#ef4444">4,210</td>
-              <td style="color:#5c5c63">0 peers</td>
-              <td style="color:#5c5c63">—</td>
-              <td style="color:#5c5c63">—</td>
-            </tr>
-            <tr>
-              <td><span class="dot" style="background:#22c55e"></span>Pacific Main Shop</td>
-              <td><span class="badge" style="background:#22c55e18;color:#22c55e;border:1px solid #22c55e30">LAN ✓</span> <span class="badge" style="background:#3b82f618;color:#3b82f6;border:1px solid #3b82f630">WAN ✓</span></td>
-              <td>3</td>
-              <td style="font-family:'JetBrains Mono',monospace;color:#22c55e">0</td>
-              <td style="color:#8b5cf6;font-weight:600">1 peer</td>
-              <td style="color:#06b6d4">1 active</td>
-              <td style="color:#8b8b92">20d</td>
-            </tr>
-            <tr>
-              <td><span class="dot" style="background:#22c55e"></span>Pacific Overflow Bay</td>
-              <td><span class="badge" style="background:#22c55e18;color:#22c55e;border:1px solid #22c55e30">LAN ✓</span> <span class="badge" style="background:#3b82f618;color:#3b82f6;border:1px solid #3b82f630">WAN ✓</span></td>
-              <td>2</td>
-              <td style="font-family:'JetBrains Mono',monospace;color:#22c55e">3</td>
-              <td style="color:#8b5cf6;font-weight:600">1 peer</td>
-              <td style="color:#06b6d4">0 active</td>
-              <td style="color:#8b8b92">7d</td>
-            </tr>
-          </tbody>
-        </table>
+    <!-- ── HEADER ── -->
+    <div class="header">
+      <div class="logo-area">
+        <div class="logo-icon">
+          <svg width="28" height="28" viewBox="0 0 22 22" fill="none">
+            <polygon points="11,2 19.5,6.5 19.5,15.5 11,20 2.5,15.5 2.5,6.5" stroke="#22c55e" stroke-width="1.2"
+              fill="none" opacity="0.7" />
+            <circle cx="11" cy="11" r="2.5" fill="#3b82f6" />
+            <line x1="11" y1="2" x2="11" y2="8.5" stroke="#22c55e" stroke-width="0.8" opacity="0.6" />
+            <line x1="19.5" y1="6.5" x2="13.2" y2="9.8" stroke="#22c55e" stroke-width="0.8" opacity="0.6" />
+            <line x1="19.5" y1="15.5" x2="13.2" y2="12.2" stroke="#22c55e" stroke-width="0.8" opacity="0.6" />
+            <line x1="11" y1="20" x2="11" y2="13.5" stroke="#22c55e" stroke-width="0.8" opacity="0.6" />
+            <line x1="2.5" y1="15.5" x2="8.8" y2="12.2" stroke="#22c55e" stroke-width="0.8" opacity="0.6" />
+            <line x1="2.5" y1="6.5" x2="8.8" y2="9.8" stroke="#22c55e" stroke-width="0.8" opacity="0.6" />
+          </svg>
+        </div>
+        <div class="logo-text">
+          <h1>GrahmOS</h1>
+          <p>Resilient Machine Node — Fleet Summary Report</p>
+        </div>
+      </div>
+      <div class="header-meta">
+        <strong>📡 Internet Optional — All Nodes Operate Locally</strong><br>
+        Generated: Feb 28, 2026 · 16:10 UTC<br>
+        Fleet: 3 Tenants · 6 Nodes · 6 Machines<br>
+        Offline nodes retain 100% local capability
       </div>
     </div>
 
-    <!-- RIGHT COL -->
-    <div style="display:flex;flex-direction:column;gap:12px">
+    <!-- ── KPI METRICS ── -->
+    <div class="sec-label"
+      data-tip="Key performance indicators aggregated across the entire GrahmOS fleet in real time.">Fleet KPIs <span
+        style="font-size:10px;cursor:help">ⓘ</span></div>
+    <div class="metrics-grid">
+      <div class="metric-card"
+        data-tip="Nodes currently reachable on LAN. Degraded = online but WAN offline. Offline = LAN unreachable.">
+        <div class="metric-label">Nodes Online</div>
+        <div class="metric-value" style="color:#22c55e">5/6</div>
+        <div class="metric-sub">4 fully syncing · 1 offline-mode</div>
+      </div>
+      <div class="metric-card"
+        data-tip="WAN = internet connectivity for cloud sync. Nodes with WAN offline still run locally and mesh-sync with peers.">
+        <div class="metric-label">Cloud Syncing</div>
+        <div class="metric-value" style="color:#3b82f6">3/6</div>
+        <div class="metric-sub">3 nodes WAN offline, operating locally</div>
+      </div>
+      <div class="metric-card" data-tip="Total machines being monitored via MTConnect agents on this fleet right now.">
+        <div class="metric-label">Machines</div>
+        <div class="metric-value" style="color:#06b6d4">6</div>
+        <div class="metric-sub">4 active · 1 interrupted · 1 unavailable</div>
+      </div>
+      <div class="metric-card"
+        data-tip="Events stored locally in SQLite WAL that have not yet been delivered to the cloud. This is NOT data loss — all events are safe on-node.">
+        <div class="metric-label">Cloud Backlog</div>
+        <div class="metric-value" style="color:#f59e0b">6,048</div>
+        <div class="metric-sub">Events queued for cloud sync (safe locally)</div>
+      </div>
+      <div class="metric-card"
+        data-tip="Active node-to-node mesh links using mDNS discovery + Automerge CRDT. Nodes share fleet state over LAN without any server.">
+        <div class="metric-label">Mesh Links</div>
+        <div class="metric-value" style="color:#8b5cf6">8</div>
+        <div class="metric-sub">P2P LAN links · CRDT v4812</div>
+      </div>
+      <div class="metric-card"
+        data-tip="AI alerts fired at the edge in the last 24 hours. These run entirely on-node — no cloud call required to detect anomalies.">
+        <div class="metric-label">AI Alerts (24h)</div>
+        <div class="metric-value" style="color:#ef4444">12</div>
+        <div class="metric-sub">1 critical · 7 warning · 4 info</div>
+      </div>
+    </div>
 
-      <!-- Edge AI Models -->
+    <!-- ── MAIN CONTENT ── -->
+    <div class="main-grid">
+
+      <!-- LEFT: Node Status Table -->
       <div>
-        <div class="sec-label" data-tip="ONNX models deployed to and running on each edge node. All inference is local — no internet or cloud API needed to get predictions.">Edge AI Models <span style="font-size:10px;cursor:help">ⓘ</span></div>
-        <div class="card">
-          <div class="model-row" data-tip="Regression model trained on spindle vibration and load data. Predicts % remaining tool life before breakage. Fires a local alert when below threshold.">
-            <div>
-              <div style="font-weight:600;font-size:12px">🔧 Tool Wear Predictor</div>
-              <div style="font-size:10px;color:var(--sec)">regression · vibration + spindle_load → life %</div>
-            </div>
-            <div style="text-align:right">
-              <div style="color:#22c55e;font-weight:700;font-size:13px">94.2%</div>
-              <div style="font-size:10px;color:var(--mut)">12ms · v1.2.0</div>
-            </div>
-          </div>
-          <div class="model-row" data-tip="Autoencoder trained on normal machine telemetry. Scores deviations 0–1. Score >0.7 triggers a local anomaly alert with no cloud call.">
-            <div>
-              <div style="font-weight:600;font-size:12px">🧠 Anomaly Detector</div>
-              <div style="font-size:10px;color:var(--sec)">autoencoder · multi-axis → score 0-1</div>
-            </div>
-            <div style="text-align:right">
-              <div style="color:#22c55e;font-weight:700;font-size:13px">96.8%</div>
-              <div style="font-size:10px;color:var(--mut)">8ms · v2.0.1</div>
-            </div>
-          </div>
-          <div class="model-row" data-tip="RL policy that recommends optimal feed rate and spindle speed based on material and current conditions. Can reduce cycle time 5–15%.">
-            <div>
-              <div style="font-weight:600;font-size:12px">⚡ Cycle Optimizer</div>
-              <div style="font-size:10px;color:var(--sec)">RL policy · feed + spindle + material → params</div>
-            </div>
-            <div style="text-align:right">
-              <div style="color:#f59e0b;font-weight:700;font-size:13px">87.1%</div>
-              <div style="font-size:10px;color:var(--mut)">22ms · v0.9.0</div>
-            </div>
-          </div>
+        <div class="sec-label"
+          data-tip="Each GrahmOS edge node is an industrial gateway (Raspberry Pi 5 / x86) co-located with CNC machines. It collects MTConnect data, stores it locally, serves a local dashboard, runs AI inference, and meshes with peer nodes.">
+          Edge Node Status <span style="font-size:10px;cursor:help">ⓘ</span></div>
+        <div class="card" style="padding:0;overflow:hidden">
+          <table class="node-table">
+            <thead>
+              <tr>
+                <th data-tip="Site name and node identifier">Site</th>
+                <th data-tip="LAN = local network reachability. WAN = internet/cloud sync.">LAN / WAN</th>
+                <th data-tip="Number of Haas CNC machines polled by this node's MTConnect collector">Machines</th>
+                <th data-tip="Cloud sync backlog — events stored locally waiting for internet">Backlog</th>
+                <th data-tip="Number of peer nodes this node is meshed with over LAN">Mesh</th>
+                <th data-tip="Local operator dashboard sessions active right now on this node's port 3000">Local UI</th>
+                <th data-tip="How long this node has been running without a reboot">Uptime</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="dot" style="background:#22c55e"></span>Allendale Bay 1</td>
+                <td><span class="badge" style="background:#22c55e18;color:#22c55e;border:1px solid #22c55e30">LAN
+                    ✓</span> <span class="badge"
+                    style="background:#3b82f618;color:#3b82f6;border:1px solid #3b82f630">WAN ✓</span></td>
+                <td>3</td>
+                <td style="font-family:'JetBrains Mono',monospace;color:#22c55e">0</td>
+                <td style="color:#8b5cf6;font-weight:600">2 peers</td>
+                <td style="color:#06b6d4">2 active</td>
+                <td style="color:#8b8b92">10d</td>
+              </tr>
+              <tr>
+                <td><span class="dot" style="background:#22c55e"></span>Allendale Bay 2</td>
+                <td><span class="badge" style="background:#22c55e18;color:#22c55e;border:1px solid #22c55e30">LAN
+                    ✓</span> <span class="badge"
+                    style="background:#3b82f618;color:#3b82f6;border:1px solid #3b82f630">WAN ✓</span></td>
+                <td>2</td>
+                <td style="font-family:'JetBrains Mono',monospace;color:#22c55e">12</td>
+                <td style="color:#8b5cf6;font-weight:600">2 peers</td>
+                <td style="color:#06b6d4">1 active</td>
+                <td style="color:#8b8b92">5d</td>
+              </tr>
+              <tr style="background:rgba(245,158,11,0.04)">
+                <td><span class="dot" style="background:#f59e0b"></span>Allendale South A <span class="badge"
+                    style="background:#f59e0b18;color:#f59e0b;border:1px solid #f59e0b30;margin-left:4px">Degraded</span>
+                </td>
+                <td><span class="badge" style="background:#22c55e18;color:#22c55e;border:1px solid #22c55e30">LAN
+                    ✓</span> <span class="badge"
+                    style="background:#ef444418;color:#ef4444;border:1px solid #ef444430">WAN ✗</span></td>
+                <td>4</td>
+                <td style="font-family:'JetBrains Mono',monospace;color:#f59e0b">1,823</td>
+                <td style="color:#8b5cf6;font-weight:600">2 peers</td>
+                <td style="color:#06b6d4">3 active</td>
+                <td style="color:#8b8b92">1d</td>
+              </tr>
+              <tr style="background:rgba(239,68,68,0.04)">
+                <td><span class="dot" style="background:#ef4444"></span>Allendale South B <span class="badge"
+                    style="background:#ef444418;color:#ef4444;border:1px solid #ef444430;margin-left:4px">Offline</span>
+                </td>
+                <td><span class="badge" style="background:#ef444418;color:#ef4444;border:1px solid #ef444430">LAN
+                    ✗</span> <span class="badge"
+                    style="background:#ef444418;color:#ef4444;border:1px solid #ef444430">WAN ✗</span></td>
+                <td>2</td>
+                <td style="font-family:'JetBrains Mono',monospace;color:#ef4444">4,210</td>
+                <td style="color:#5c5c63">0 peers</td>
+                <td style="color:#5c5c63">—</td>
+                <td style="color:#5c5c63">—</td>
+              </tr>
+              <tr>
+                <td><span class="dot" style="background:#22c55e"></span>Pacific Main Shop</td>
+                <td><span class="badge" style="background:#22c55e18;color:#22c55e;border:1px solid #22c55e30">LAN
+                    ✓</span> <span class="badge"
+                    style="background:#3b82f618;color:#3b82f6;border:1px solid #3b82f630">WAN ✓</span></td>
+                <td>3</td>
+                <td style="font-family:'JetBrains Mono',monospace;color:#22c55e">0</td>
+                <td style="color:#8b5cf6;font-weight:600">1 peer</td>
+                <td style="color:#06b6d4">1 active</td>
+                <td style="color:#8b8b92">20d</td>
+              </tr>
+              <tr>
+                <td><span class="dot" style="background:#22c55e"></span>Pacific Overflow Bay</td>
+                <td><span class="badge" style="background:#22c55e18;color:#22c55e;border:1px solid #22c55e30">LAN
+                    ✓</span> <span class="badge"
+                    style="background:#3b82f618;color:#3b82f6;border:1px solid #3b82f630">WAN ✓</span></td>
+                <td>2</td>
+                <td style="font-family:'JetBrains Mono',monospace;color:#22c55e">3</td>
+                <td style="color:#8b5cf6;font-weight:600">1 peer</td>
+                <td style="color:#06b6d4">0 active</td>
+                <td style="color:#8b8b92">7d</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
 
-      <!-- Backlog -->
-      <div>
-        <div class="sec-label" data-tip="Store-and-forward queue per node. Events are written to SQLite WAL locally FIRST, then synced to cloud. Backlog = pending cloud delivery, NOT missing data.">Cloud Sync Backlog <span style="font-size:10px;cursor:help">ⓘ</span></div>
-        <div class="card">
-          <div class="backlog-row" data-tip="Allendale Bay 1 — WAN online, fully caught up.">
-            <div style="display:flex;justify-content:space-between;font-size:11px"><span>Allendale Bay 1</span><span style="font-family:'JetBrains Mono',monospace;color:#22c55e">0 events</span></div>
-            <div class="backlog-bar-track"><div class="backlog-bar-fill" style="width:0%;background:#22c55e"></div></div>
-          </div>
-          <div class="backlog-row" data-tip="Allendale Bay 2 — minor backlog from batch interval, draining normally.">
-            <div style="display:flex;justify-content:space-between;font-size:11px"><span>Allendale Bay 2</span><span style="font-family:'JetBrains Mono',monospace;color:#22c55e">12 events</span></div>
-            <div class="backlog-bar-track"><div class="backlog-bar-fill" style="width:1%;background:#22c55e"></div></div>
-          </div>
-          <div class="backlog-row" data-tip="Allendale South A — WAN offline since 12:02 UTC. 1,823 events safely queued locally. Local operations fully unaffected.">
-            <div style="display:flex;justify-content:space-between;font-size:11px"><span>Allendale South A <span style="color:var(--mut)">(WAN offline)</span></span><span style="font-family:'JetBrains Mono',monospace;color:#f59e0b">1,823 events</span></div>
-            <div class="backlog-bar-track"><div class="backlog-bar-fill" style="width:36%;background:#f59e0b"></div></div>
-          </div>
-          <div class="backlog-row" data-tip="Allendale South B — node offline since yesterday. 4,210 events queued in last-known local store. Will drain on reconnect at 2,000+ events/sec.">
-            <div style="display:flex;justify-content:space-between;font-size:11px"><span>Allendale South B <span style="color:var(--mut)">(node offline)</span></span><span style="font-family:'JetBrains Mono',monospace;color:#ef4444">4,210 events</span></div>
-            <div class="backlog-bar-track"><div class="backlog-bar-fill" style="width:84%;background:#ef4444"></div></div>
-          </div>
-          <div class="backlog-row" data-tip="Pacific sites — both WAN online, caught up.">
-            <div style="display:flex;justify-content:space-between;font-size:11px"><span>Pacific sites (×2)</span><span style="font-family:'JetBrains Mono',monospace;color:#22c55e">3 events</span></div>
-            <div class="backlog-bar-track"><div class="backlog-bar-fill" style="width:0.5%;background:#22c55e"></div></div>
-          </div>
-          <div style="margin-top:8px;font-size:10px;color:var(--mut);padding-top:6px;border-top:1px solid var(--border)">
-            🛡️ Zero data loss guarantee — all events persisted locally before sync attempt
+      <!-- RIGHT COL -->
+      <div style="display:flex;flex-direction:column;gap:12px">
+
+        <!-- Edge AI Models -->
+        <div>
+          <div class="sec-label"
+            data-tip="ONNX models deployed to and running on each edge node. All inference is local — no internet or cloud API needed to get predictions.">
+            Edge AI Models <span style="font-size:10px;cursor:help">ⓘ</span></div>
+          <div class="card">
+            <div class="model-row"
+              data-tip="Regression model trained on spindle vibration and load data. Predicts % remaining tool life before breakage. Fires a local alert when below threshold.">
+              <div>
+                <div style="font-weight:600;font-size:12px">🔧 Tool Wear Predictor</div>
+                <div style="font-size:10px;color:var(--sec)">regression · vibration + spindle_load → life %</div>
+              </div>
+              <div style="text-align:right">
+                <div style="color:#22c55e;font-weight:700;font-size:13px">94.2%</div>
+                <div style="font-size:10px;color:var(--mut)">12ms · v1.2.0</div>
+              </div>
+            </div>
+            <div class="model-row"
+              data-tip="Autoencoder trained on normal machine telemetry. Scores deviations 0–1. Score >0.7 triggers a local anomaly alert with no cloud call.">
+              <div>
+                <div style="font-weight:600;font-size:12px">🧠 Anomaly Detector</div>
+                <div style="font-size:10px;color:var(--sec)">autoencoder · multi-axis → score 0-1</div>
+              </div>
+              <div style="text-align:right">
+                <div style="color:#22c55e;font-weight:700;font-size:13px">96.8%</div>
+                <div style="font-size:10px;color:var(--mut)">8ms · v2.0.1</div>
+              </div>
+            </div>
+            <div class="model-row"
+              data-tip="RL policy that recommends optimal feed rate and spindle speed based on material and current conditions. Can reduce cycle time 5–15%.">
+              <div>
+                <div style="font-weight:600;font-size:12px">⚡ Cycle Optimizer</div>
+                <div style="font-size:10px;color:var(--sec)">RL policy · feed + spindle + material → params</div>
+              </div>
+              <div style="text-align:right">
+                <div style="color:#f59e0b;font-weight:700;font-size:13px">87.1%</div>
+                <div style="font-size:10px;color:var(--mut)">22ms · v0.9.0</div>
+              </div>
+            </div>
           </div>
         </div>
+
+        <!-- Backlog -->
+        <div>
+          <div class="sec-label"
+            data-tip="Store-and-forward queue per node. Events are written to SQLite WAL locally FIRST, then synced to cloud. Backlog = pending cloud delivery, NOT missing data.">
+            Cloud Sync Backlog <span style="font-size:10px;cursor:help">ⓘ</span></div>
+          <div class="card">
+            <div class="backlog-row" data-tip="Allendale Bay 1 — WAN online, fully caught up.">
+              <div style="display:flex;justify-content:space-between;font-size:11px"><span>Allendale Bay 1</span><span
+                  style="font-family:'JetBrains Mono',monospace;color:#22c55e">0 events</span></div>
+              <div class="backlog-bar-track">
+                <div class="backlog-bar-fill" style="width:0%;background:#22c55e"></div>
+              </div>
+            </div>
+            <div class="backlog-row" data-tip="Allendale Bay 2 — minor backlog from batch interval, draining normally.">
+              <div style="display:flex;justify-content:space-between;font-size:11px"><span>Allendale Bay 2</span><span
+                  style="font-family:'JetBrains Mono',monospace;color:#22c55e">12 events</span></div>
+              <div class="backlog-bar-track">
+                <div class="backlog-bar-fill" style="width:1%;background:#22c55e"></div>
+              </div>
+            </div>
+            <div class="backlog-row"
+              data-tip="Allendale South A — WAN offline since 12:02 UTC. 1,823 events safely queued locally. Local operations fully unaffected.">
+              <div style="display:flex;justify-content:space-between;font-size:11px"><span>Allendale South A <span
+                    style="color:var(--mut)">(WAN offline)</span></span><span
+                  style="font-family:'JetBrains Mono',monospace;color:#f59e0b">1,823 events</span></div>
+              <div class="backlog-bar-track">
+                <div class="backlog-bar-fill" style="width:36%;background:#f59e0b"></div>
+              </div>
+            </div>
+            <div class="backlog-row"
+              data-tip="Allendale South B — node offline since yesterday. 4,210 events queued in last-known local store. Will drain on reconnect at 2,000+ events/sec.">
+              <div style="display:flex;justify-content:space-between;font-size:11px"><span>Allendale South B <span
+                    style="color:var(--mut)">(node offline)</span></span><span
+                  style="font-family:'JetBrains Mono',monospace;color:#ef4444">4,210 events</span></div>
+              <div class="backlog-bar-track">
+                <div class="backlog-bar-fill" style="width:84%;background:#ef4444"></div>
+              </div>
+            </div>
+            <div class="backlog-row" data-tip="Pacific sites — both WAN online, caught up.">
+              <div style="display:flex;justify-content:space-between;font-size:11px"><span>Pacific sites
+                  (×2)</span><span style="font-family:'JetBrains Mono',monospace;color:#22c55e">3 events</span></div>
+              <div class="backlog-bar-track">
+                <div class="backlog-bar-fill" style="width:0.5%;background:#22c55e"></div>
+              </div>
+            </div>
+            <div
+              style="margin-top:8px;font-size:10px;color:var(--mut);padding-top:6px;border-top:1px solid var(--border)">
+              🛡️ Zero data loss guarantee — all events persisted locally before sync attempt
+            </div>
+          </div>
+        </div>
+
       </div>
+    </div>
 
-    </div>
-  </div>
-
-  <!-- ── ARCHITECTURE ── -->
-  <div class="sec-label" data-tip="GrahmOS operates across three zones: the offline edge (always on), the sync bridge (when internet is available), and the cloud amplifier (for global visibility). Each zone is independently functional.">System Architecture <span style="font-size:10px;cursor:help">ⓘ</span></div>
-  <div class="arch-grid">
-    <div class="arch-zone" style="background:rgba(34,197,94,0.05);border-color:#22c55e">
-      <div class="arch-zone-title" style="color:#22c55e">📡 Offline Zone — Always On</div>
-      <div class="arch-item" data-tip="Haas CNC machines expose telemetry via MTConnect SHDR protocol. GrahmOS polls the agent at :8082 on a configurable interval."><span>🔧</span> Haas MTConnect Agent (:8082)</div>
-      <div class="arch-item" data-tip="The core GrahmOS process — collects MTConnect data, writes to SQLite WAL, manages the local event store, and serves all local APIs."><span>💾</span> Edge Collector + SQLite WAL Store</div>
-      <div class="arch-item" data-tip="A Next.js static dashboard served by the node on port 3000. Operators can monitor machines and alerts directly on the shop floor LAN with no internet."><span>📊</span> Local Dashboard (LAN :3000)</div>
-      <div class="arch-item" data-tip="Alert rules run entirely on-node. They evaluate thresholds and AI outputs locally — no cloud API call needed to fire a critical alert."><span>🚨</span> Local Alert Engine (rules + AI)</div>
-      <div class="arch-item" data-tip="mDNS peer discovery + Automerge CRDT lets nodes share fleet state with each other over LAN. Fully serverless — no coordinator needed."><span>🔗</span> Mesh Sync (mDNS + Automerge CRDT)</div>
-    </div>
-    <div class="arch-zone" style="background:rgba(245,158,11,0.05);border-color:#f59e0b">
-      <div class="arch-zone-title" style="color:#f59e0b">⚡ Sync Bridge — When Internet Available</div>
-      <div class="arch-item" data-tip="Batches locally-stored events, signs them with Ed25519, and POSTs to the cloud ingest API. Automatically drains backlog on reconnect at 2,000+ events/sec."><span>↑</span> Store-and-Forward HTTP Batch</div>
-      <div class="arch-item" data-tip="Optional WireGuard tunnel for encrypted node-to-cloud communication. Not required — HTTP batch works over standard internet too."><span>🔐</span> WireGuard VPN Tunnel (optional)</div>
-      <div class="arch-item" data-tip="Each event is signed with the node's Ed25519 private key before transmission. Cloud verifies signature — prevents spoofed data injection."><span>✍️</span> Ed25519 Event Signing</div>
-      <div class="arch-item" data-tip="On reconnect, GrahmOS replays the local backlog in chronological order, preserving exact timestamps from when events were originally observed."><span>⟳</span> Backlog Replay (timestamped)</div>
-    </div>
-    <div class="arch-zone" style="background:rgba(59,130,246,0.05);border-color:#3b82f6">
+    <!-- ── ARCHITECTURE ── -->
+    <div class="sec-label"
+      data-tip="GrahmOS operates across three zones: the offline edge (always on), the sync bridge (when internet is available), and the cloud amplifier (for global visibility). Each zone is independently functional.">
+      System Architecture <span style="font-size:10px;cursor:help">ⓘ</span></div>
+    <div class="arch-grid">
+      <div class="arch-zone" style="background:rgba(34,197,94,0.05);border-color:#22c55e">
+        <div class="arch-zone-title" style="color:#22c55e">📡 Offline Zone — Always On</div>
+        <div class="arch-item"
+          data-tip="Haas CNC machines expose telemetry via MTConnect SHDR protocol. GrahmOS polls the agent at :8082 on a configurable interval.">
+          <span>🔧</span> Haas MTConnect Agent (:8082)</div>
+        <div class="arch-item"
+          data-tip="The core GrahmOS process — collects MTConnect data, writes to SQLite WAL, manages the local event store, and serves all local APIs.">
+          <span>💾</span> Edge Collector + SQLite WAL Store</div>
+        <div class="arch-item"
+          data-tip="A Next.js static dashboard served by the node on port 3000. Operators can monitor machines and alerts directly on the shop floor LAN with no internet.">
+          <span>📊</span> Local Dashboard (LAN :3000)</div>
+        <div class="arch-item"
+          data-tip="Alert rules run entirely on-node. They evaluate thresholds and AI outputs locally — no cloud API call needed to fire a critical alert.">
+          <span>🚨</span> Local Alert Engine (rules + AI)</div>
+        <div class="arch-item"
+          data-tip="mDNS peer discovery + Automerge CRDT lets nodes share fleet state with each other over LAN. Fully serverless — no coordinator needed.">
+          <span>🔗</span> Mesh Sync (mDNS + Automerge CRDT)</div>
+      </div>
+      <div class="arch-zone" style="background:rgba(245,158,11,0.05);border-color:#f59e0b">
+        <div class="arch-zone-title" style="color:#f59e0b">⚡ Sync Bridge — When Internet Available</div>
+        <div class="arch-item"
+          data-tip="Batches locally-stored events, signs them with Ed25519, and POSTs to the cloud ingest API. Automatically drains backlog on reconnect at 2,000+ events/sec.">
+          <span>↑</span> Store-and-Forward HTTP Batch</div>
+        <div class="arch-item"
+          data-tip="Optional WireGuard tunnel for encrypted node-to-cloud communication. Not required — HTTP batch works over standard internet too.">
+          <span>🔐</span> WireGuard VPN Tunnel (optional)</div>
+        <div class="arch-item"
+          data-tip="Each event is signed with the node's Ed25519 private key before transmission. Cloud verifies signature — prevents spoofed data injection.">
+          <span>✍️</span> Ed25519 Event Signing</div>
+        <div class="arch-item"
+          data-tip="On reconnect, GrahmOS replays the local backlog in chronological order, preserving exact timestamps from when events were originally observed.">
+          <span>⟳</span> Backlog Replay (timestamped)</div>
+      </div>
+      <!-- <div class="arch-zone" style="background:rgba(59,130,246,0.05);border-color:#3b82f6">
       <div class="arch-zone-title" style="color:#3b82f6">☁️ Cloud Amplifier — Global View</div>
       <div class="arch-item" data-tip="Serverless Next.js functions on Vercel receive batched events, verify Ed25519 signatures, and write to Postgres with row-level tenant isolation."><span>▲</span> Vercel Ingest API + Signature Verify</div>
       <div class="arch-item" data-tip="Postgres with row-level security (RLS) ensures each tenant can only query their own machine data. No cross-tenant data leakage possible."><span>🗄️</span> Postgres + Row-Level Security</div>
       <div class="arch-item" data-tip="The global fleet dashboard — view all sites, all tenants, cross-site analytics, and historical trends. Only possible when nodes are cloud-syncing."><span>🌐</span> Global Fleet Dashboard (Vercel)</div>
       <div class="arch-item" data-tip="Webhook triggers, Slack alerts, and integrations with ERP/MES systems fire from cloud when events arrive. Edge alerts are the real-time fallback."><span>🔔</span> Webhook / Integration Layer</div>
+    </div> -->
     </div>
+
+    <!-- ── ACTIVE ALERTS ── -->
+    <div style="margin-top:14px">
+      <div class="sec-label"
+        data-tip="Alerts fired by on-node rules or edge AI models in the last 24 hours. These fire locally — no internet required.">
+        Active Edge Alerts (24h) <span style="font-size:10px;cursor:help">ⓘ</span></div>
+      <div class="alert-strip">
+        <div class="alert-pill" style="background:rgba(239,68,68,0.08);border-color:rgba(239,68,68,0.3);color:#ef4444"
+          data-tip="VF-2 #02's MTConnect agent has been unreachable for more than 5 minutes. Could be a network issue on the machine or the agent process crashed. Node is still collecting from other machines.">
+          🔴 <strong>CRITICAL:</strong> VF-2 #02 MTConnect agent unreachable &gt;5min
+        </div>
+        <div class="alert-pill" style="background:rgba(245,158,11,0.08);border-color:rgba(245,158,11,0.3);color:#f59e0b"
+          data-tip="Anomaly Detector scored 0.82 on UMC-750 spindle vibration — above 0.7 threshold. Likely early bearing wear. Triggered a local alert. No cloud call needed.">
+          🟡 <strong>AI:</strong> UMC-750 anomaly score 0.82 — possible bearing wear
+        </div>
+        <div class="alert-pill" style="background:rgba(245,158,11,0.08);border-color:rgba(245,158,11,0.3);color:#f59e0b"
+          data-tip="Tool Wear model predicts Tool #7 on VF-5 has 28% life remaining. Recommend replacement at next scheduled stop before it causes a part defect.">
+          🟡 <strong>AI:</strong> VF-5 Tool #7 — 28% tool life remaining
+        </div>
+        <div class="alert-pill" style="background:rgba(245,158,11,0.08);border-color:rgba(245,158,11,0.3);color:#f59e0b"
+          data-tip="South A lost WAN connectivity at 12:02 UTC. Node is operating normally in offline mode — local dashboard active, machines monitored, mesh sync running, alerts firing.">
+          🟡 WAN offline on South A — offline mode active since 12:02 UTC
+        </div>
+        <div class="alert-pill" style="background:rgba(6,182,212,0.08);border-color:rgba(6,182,212,0.3);color:#06b6d4"
+          data-tip="Cycle Optimizer found an 8% cycle time reduction opportunity on EC-400. Recommended feed rate adjustment has been logged. Operator can review on local dashboard.">
+          🔵 <strong>AI:</strong> EC-400 cycle time reducible by 8% via feed rate adjust
+        </div>
+      </div>
+    </div>
+
+    <!-- ── FOOTER ── -->
+    <div class="footer">
+      <div>GrahmOS · Resilient Machine Node MVP · Confidential Fleet Summary · Feb 28, 2026</div>
+      <div class="footer-badges">
+        <span class="badge" style="background:rgba(34,197,94,0.1);color:#22c55e;border:1px solid rgba(34,197,94,0.2)">📡
+          Offline-First</span>
+        <span class="badge"
+          style="background:rgba(139,92,246,0.1);color:#8b5cf6;border:1px solid rgba(139,92,246,0.2)">🔗 Mesh P2P</span>
+        <span class="badge"
+          style="background:rgba(168,85,247,0.1);color:#a855f7;border:1px solid rgba(168,85,247,0.2)">🧠 Edge AI</span>
+        <span class="badge"
+          style="background:rgba(59,130,246,0.1);color:#3b82f6;border:1px solid rgba(59,130,246,0.2)">🛡️ Zero Data
+          Loss</span>
+      </div>
+    </div>
+
   </div>
 
-  <!-- ── ACTIVE ALERTS ── -->
-  <div style="margin-top:14px">
-    <div class="sec-label" data-tip="Alerts fired by on-node rules or edge AI models in the last 24 hours. These fire locally — no internet required.">Active Edge Alerts (24h) <span style="font-size:10px;cursor:help">ⓘ</span></div>
-    <div class="alert-strip">
-      <div class="alert-pill" style="background:rgba(239,68,68,0.08);border-color:rgba(239,68,68,0.3);color:#ef4444" data-tip="VF-2 #02's MTConnect agent has been unreachable for more than 5 minutes. Could be a network issue on the machine or the agent process crashed. Node is still collecting from other machines.">
-        🔴 <strong>CRITICAL:</strong> VF-2 #02 MTConnect agent unreachable &gt;5min
-      </div>
-      <div class="alert-pill" style="background:rgba(245,158,11,0.08);border-color:rgba(245,158,11,0.3);color:#f59e0b" data-tip="Anomaly Detector scored 0.82 on UMC-750 spindle vibration — above 0.7 threshold. Likely early bearing wear. Triggered a local alert. No cloud call needed.">
-        🟡 <strong>AI:</strong> UMC-750 anomaly score 0.82 — possible bearing wear
-      </div>
-      <div class="alert-pill" style="background:rgba(245,158,11,0.08);border-color:rgba(245,158,11,0.3);color:#f59e0b" data-tip="Tool Wear model predicts Tool #7 on VF-5 has 28% life remaining. Recommend replacement at next scheduled stop before it causes a part defect.">
-        🟡 <strong>AI:</strong> VF-5 Tool #7 — 28% tool life remaining
-      </div>
-      <div class="alert-pill" style="background:rgba(245,158,11,0.08);border-color:rgba(245,158,11,0.3);color:#f59e0b" data-tip="South A lost WAN connectivity at 12:02 UTC. Node is operating normally in offline mode — local dashboard active, machines monitored, mesh sync running, alerts firing.">
-        🟡 WAN offline on South A — offline mode active since 12:02 UTC
-      </div>
-      <div class="alert-pill" style="background:rgba(6,182,212,0.08);border-color:rgba(6,182,212,0.3);color:#06b6d4" data-tip="Cycle Optimizer found an 8% cycle time reduction opportunity on EC-400. Recommended feed rate adjustment has been logged. Operator can review on local dashboard.">
-        🔵 <strong>AI:</strong> EC-400 cycle time reducible by 8% via feed rate adjust
-      </div>
-    </div>
-  </div>
-
-  <!-- ── FOOTER ── -->
-  <div class="footer">
-    <div>GrahmOS · Resilient Machine Node MVP · Confidential Fleet Summary · Feb 28, 2026</div>
-    <div class="footer-badges">
-      <span class="badge" style="background:rgba(34,197,94,0.1);color:#22c55e;border:1px solid rgba(34,197,94,0.2)">📡 Offline-First</span>
-      <span class="badge" style="background:rgba(139,92,246,0.1);color:#8b5cf6;border:1px solid rgba(139,92,246,0.2)">🔗 Mesh P2P</span>
-      <span class="badge" style="background:rgba(168,85,247,0.1);color:#a855f7;border:1px solid rgba(168,85,247,0.2)">🧠 Edge AI</span>
-      <span class="badge" style="background:rgba(59,130,246,0.1);color:#3b82f6;border:1px solid rgba(59,130,246,0.2)">🛡️ Zero Data Loss</span>
-    </div>
-  </div>
-
-</div>
-
-<script>
-function copyLink() {
-  const dummy = document.createElement('input');
-  dummy.value = window.location.href;
-  document.body.appendChild(dummy);
-  dummy.select();
-  document.execCommand('copy');
-  document.body.removeChild(dummy);
-  const btn = event.target;
-  btn.textContent = '✓ Copied!';
-  setTimeout(() => btn.textContent = '🔗 Copy Share Link', 2000);
-}
-</script>
+  <script>
+    function copyLink() {
+      const dummy = document.createElement('input');
+      dummy.value = window.location.href;
+      document.body.appendChild(dummy);
+      dummy.select();
+      document.execCommand('copy');
+      document.body.removeChild(dummy);
+      const btn = event.target;
+      btn.textContent = '✓ Copied!';
+      setTimeout(() => btn.textContent = '🔗 Copy Share Link', 2000);
+    }
+  </script>
 </body>
+
 </html>
